@@ -1,0 +1,46 @@
+# TeddyCloud Custom Tag Helper - Configuration Template
+#
+# Copy this file to config.yaml and adjust settings as needed.
+# Most users only need to set TEDDYCLOUD_DATA_PATH environment variable.
+
+# TeddyCloud Connection
+teddycloud:
+  url: http://docker  # Change to your TeddyCloud URL
+  api_base: /api
+  timeout: 30
+
+# Volume Configuration
+volumes:
+  # Path to TeddyCloud data directory
+  # Set via TEDDYCLOUD_DATA_PATH environment variable (recommended)
+  # Default: /data (inside container)
+  #
+  # Expected structure:
+  #   data_path/
+  #   ├── config/          (tonies.custom.json, config.overlay.ini)
+  #   ├── library/         (TAF files, subdirectories supported)
+  #   └── content/default/ (RFID tag mappings per Toniebox)
+  data_path: /data
+
+# Application Settings
+app:
+  auto_parse_taf: true
+  confirm_before_save: true
+  auto_reload_config: true
+  default_language: de-de
+  max_image_size_mb: 5
+  allowed_image_formats:
+  - jpg
+  - jpeg
+  - png
+  - webp
+  show_hidden_files: false
+  recursive_scan: true
+
+# Advanced Settings
+advanced:
+  parse_cover_from_taf: true
+  extract_track_names: true
+  log_level: INFO
+  cache_taf_metadata: true
+  cache_ttl_seconds: 300

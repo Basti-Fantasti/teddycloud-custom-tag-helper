@@ -1,0 +1,118 @@
+{
+  "app": {
+    "title": "TeddyCloud Custom Tag Helper",
+    "loading": "Loading...",
+    "error": "Error"
+  },
+  "navigation": {
+    "tafFiles": "TAF Files",
+    "customTonies": "Custom Tonies",
+    "rfidTags": "RFID Tags"
+  },
+  "buttons": {
+    "add": "Add Custom Tonie",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "refresh": "Refresh",
+    "setup": "Setup",
+    "assign": "Assign",
+    "settings": "Settings"
+  },
+  "rfid": {
+    "statistics": {
+      "total": "Total",
+      "assigned": "Assigned",
+      "unconfigured": "Unconfigured"
+    },
+    "filters": {
+      "all": "All",
+      "assigned": "Assigned",
+      "unconfigured": "Unconfigured"
+    },
+    "status": {
+      "assigned": "Assigned",
+      "unconfigured": "Unconfigured"
+    },
+    "noTagsFound": "No RFID tags found",
+    "inCategory": "in category"
+  },
+  "tagStatus": {
+    "noBoxSelected": "No Toniebox selected",
+    "noTagDetected": "No tag detected",
+    "newTagDetected": "New Tag Detected",
+    "refreshStatus": "Refresh tag status"
+  },
+  "tagSetup": {
+    "title": "Setup Current Tag",
+    "tagUid": "Tag UID",
+    "searchPlaceholder": "Search TAF files...",
+    "noFilesFound": "No TAF files found matching your search",
+    "noFilesAvailable": "No TAF files available",
+    "alreadyLinked": "Already linked",
+    "filesAvailable": "TAF file",
+    "filesAvailablePlural": "TAF files",
+    "available": "available",
+    "linkSuccess": "Tag {uid} successfully linked to \"{name}\"!",
+    "linkError": "Failed to link tag: {error}"
+  },
+  "settings": {
+    "title": "Settings",
+    "teddycloud": {
+      "title": "TeddyCloud Connection",
+      "url": "TeddyCloud URL",
+      "urlHelp": "Base URL of your TeddyCloud instance",
+      "timeout": "Timeout (seconds)"
+    },
+    "app": {
+      "title": "Application Settings",
+      "autoParseTitle": "Auto-parse TAF metadata",
+      "autoParseHelp": "Automatically extract metadata when selecting a TAF file",
+      "defaultLanguageTitle": "Default Language",
+      "defaultLanguageHelp": "Default language for new tonies",
+      "uiLanguageTitle": "UI Language",
+      "uiLanguageHelp": "Language for the user interface",
+      "activeBoxTitle": "Active Toniebox",
+      "activeBoxHelp": "Select the Toniebox to manage",
+      "noBoxSelected": "No box selected"
+    },
+    "languages": {
+      "en": "English",
+      "de": "German (Deutsch)",
+      "fr": "French (Français)",
+      "it": "Italian (Italiano)",
+      "nl": "Dutch (Nederlands)"
+    },
+    "saveSuccess": "Settings saved successfully!",
+    "saveError": "Failed to save settings",
+    "testConnection": "Test Connection",
+    "testSuccess": "Connection successful!",
+    "testError": "Connection failed"
+  },
+  "tonieEditor": {
+    "createTitle": "Create Custom Tonie",
+    "editTitle": "Edit Custom Tonie",
+    "fields": {
+      "series": "Series / Name",
+      "seriesPlaceholder": "e.g., Die drei ???",
+      "episodes": "Description / Episodes",
+      "episodesPlaceholder": "e.g., Folge 1: Der Super-Papagei",
+      "category": "Category",
+      "language": "Language",
+      "tafFile": "TAF File",
+      "selectTaf": "Select TAF File",
+      "cover": "Cover Image"
+    },
+    "categories": {
+      "custom": "Custom",
+      "audio-book": "Audio Book",
+      "music": "Music",
+      "podcast": "Podcast"
+    },
+    "createSuccess": "Tonie created successfully!",
+    "updateSuccess": "Tonie updated successfully!",
+    "deleteSuccess": "Tonie deleted successfully!",
+    "error": "An error occurred"
+  }
+}
