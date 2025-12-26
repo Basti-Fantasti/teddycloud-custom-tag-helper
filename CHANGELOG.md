@@ -65,6 +65,13 @@ Re-arranged TAF filter buttons to match statistics card order: All, Linked, Orph
 #### Files Changed
 - **frontend/src/components/TAFLibrary.jsx** - Swapped Linked and Orphaned button positions
 
+### Added - GitHub Repository Link in Footer
+
+Version number in footer now links to the GitHub repository for easy access to source code and releases.
+
+#### Files Changed
+- **frontend/src/pages/Dashboard.jsx** - Version wrapped in link to GitHub repository
+
 ---
 
 ## [2.2.3] - 2025-12-26
