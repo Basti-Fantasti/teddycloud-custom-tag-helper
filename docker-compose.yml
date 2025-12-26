@@ -1,6 +1,7 @@
 services:
   tag-helper:
-    build: .
+    #build: .
+    image: ghcr.io/basti-fantasti/teddycloud-tag-helper:latest
     container_name: teddycloud-tag-helper
     ports:
       - "${PORT:-3000}:80"

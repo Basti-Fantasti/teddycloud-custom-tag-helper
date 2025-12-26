@@ -1,0 +1,54 @@
+services:
+  tag-helper:
+    build:
+      context: .
+    image: ghcr.io/basti-fantasti/teddycloud-custom-tag-helper:2.2.3
+    container_name: teddycloud-tag-helper
+    ports:
+    - "${PORT:-3000}:80"
+    environment:
+      # TeddyCloud connection (configure in setup wizard after first start)
+    - TEDDYCLOUD_URL=${TEDDYCLOUD_URL:-http://docker}
+      # CORS allowed origins (comma-separated) - leave empty for same-origin only
+    - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-}
+    volumes:
+      # TeddyCloud data volume (REQUIRES WRITE ACCESS for covers and tonies.json)
+      # Set TEDDYCLOUD_DATA_PATH in Portainer environment variables
+      # Example: TEDDYCLOUD_DATA_PATH=/docker/appdata/teddycloud
+    - ${TEDDYCLOUD_DATA_PATH:-teddycloud-data}:/data
+
+      # Config directory - creates /docker/appdata/teddycloud-tag-helper/ for easy access
+      # Set CONFIG_PATH to customize location (default: ./data)
+    - ${CONFIG_PATH:-./data}:/config
+    restart: unless-stopped
+    networks:
+    - tag-helper-network
+    # Health check for container monitoring
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    # Resource limits for stability
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  tag-helper-network:
+    driver: bridge
+
+volumes:
+  teddycloud-data:
+    # Only needed if not using bind mount via TEDDYCLOUD_DATA_PATH
+    # Recommended: Use bind mount for easier access
