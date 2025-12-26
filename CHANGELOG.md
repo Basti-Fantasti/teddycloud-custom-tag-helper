@@ -6,6 +6,35 @@ This project has been prepared for public release on GitHub/Forgejo. All persona
 
 ---
 
+## [2.2.2] - 2025-12-26
+
+### Fixed - Settings Changes Requiring Page Reload
+
+Fixed an issue where changing the selected Toniebox in Settings required a full page reload for changes to take effect.
+
+#### Root Cause
+- `Dashboard.jsx` loaded config only once on mount
+- `SettingsDialog.jsx` always restarted backend and reloaded page on save
+- No callback mechanism to notify Dashboard of app settings changes
+
+#### Solution
+- `SettingsDialog.jsx` now tracks initial config to detect what changed
+- Only restarts backend if TeddyCloud URL/timeout changed
+- For app-only changes (selected box, default language), saves without restart and calls `onConfigChange` callback
+- `Dashboard.jsx` handles callback and updates `selectedBox` and `defaultLanguage` state immediately
+
+#### Files Changed
+- **SettingsDialog.jsx** - Added `onConfigChange` prop, track initial config, conditional restart logic
+- **Dashboard.jsx** - Added `handleConfigChange` handler, pass callback to SettingsDialog
+
+#### Acceptance Criteria Met
+- [x] Changing box in Settings immediately updates TagStatusField
+- [x] No page reload required for app settings changes
+- [x] Config persisted to backend correctly
+- [x] Backend restart still happens when TeddyCloud URL changes
+
+---
+
 ## [2.2.1] - 2025-12-26
 
 ### Fixed - Default Language Not Applied to New Tonies

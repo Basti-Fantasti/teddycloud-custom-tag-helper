@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { API_URL } from '../config/apiConfig';
 import { useTranslation } from '../hooks/useTranslation';
 
-export default function SettingsDialog({ isOpen, onClose }) {
+export default function SettingsDialog({ isOpen, onClose, onConfigChange }) {
   const { t, language, setLanguage } = useTranslation();
   const [config, setConfig] = useState({
     teddycloud: { url: '', timeout: 30 },
     app: { auto_parse_taf: true, default_language: 'de-de', selected_box: null }
   });
+  const [initialConfig, setInitialConfig] = useState(null);
   const [testResults, setTestResults] = useState(null);
   const [testing, setTesting] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -30,6 +31,7 @@ export default function SettingsDialog({ isOpen, onClose }) {
       const response = await fetch(`${API_URL}/api/config`);
       const data = await response.json();
       setConfig(data);
+      setInitialConfig(JSON.parse(JSON.stringify(data))); // Deep copy for comparison
       setError(null);
     } catch (err) {
       setError(`Failed to load configuration: ${err.message}`);
@@ -91,20 +93,38 @@ export default function SettingsDialog({ isOpen, onClose }) {
         throw new Error('Failed to save configuration');
       }
 
-      // Restart backend
-      try {
-        await fetch(`${API_URL}/api/restart`, { method: 'POST', signal: AbortSignal.timeout(2000) });
-      } catch (restartErr) {
-        // Restart endpoint will close the connection, so this is expected
-        console.log('Backend is restarting...');
+      // Check if backend settings changed (requires restart)
+      const backendSettingsChanged = initialConfig && (
+        config.teddycloud.url !== initialConfig.teddycloud.url ||
+        config.teddycloud.timeout !== initialConfig.teddycloud.timeout
+      );
+
+      if (backendSettingsChanged) {
+        // Restart backend
+        try {
+          await fetch(`${API_URL}/api/restart`, { method: 'POST', signal: AbortSignal.timeout(2000) });
+        } catch (restartErr) {
+          // Restart endpoint will close the connection, so this is expected
+          console.log('Backend is restarting...');
+        }
+
+        // Close dialog and show success message
+        alert('Settings saved! Backend is restarting...');
+        onClose();
+
+        // Reload page after a short delay to reconnect to restarted backend
+        setTimeout(() => window.location.reload(), 3000);
+      } else {
+        // Only app settings changed - no restart needed
+        // Notify parent component of config changes
+        if (onConfigChange) {
+          onConfigChange({
+            selectedBox: config.app.selected_box,
+            defaultLanguage: config.app.default_language
+          });
+        }
+        onClose();
       }
-
-      // Close dialog and show success message
-      alert('Settings saved! Backend is restarting...');
-      onClose();
-
-      // Reload page after a short delay to reconnect to restarted backend
-      setTimeout(() => window.location.reload(), 3000);
     } catch (err) {
       setError(`Failed to save: ${err.message}`);
     } finally {

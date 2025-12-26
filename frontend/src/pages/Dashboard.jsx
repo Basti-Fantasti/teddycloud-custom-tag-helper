@@ -186,6 +186,15 @@ export default function Dashboard() {
     setShowTagSetup(true);
   };
 
+  const handleConfigChange = ({ selectedBox: newSelectedBox, defaultLanguage: newDefaultLanguage }) => {
+    if (newSelectedBox !== undefined) {
+      setSelectedBox(newSelectedBox);
+    }
+    if (newDefaultLanguage !== undefined) {
+      setDefaultLanguage(newDefaultLanguage);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       {/* Header */}
@@ -292,7 +301,7 @@ export default function Dashboard() {
       <StatusBar status={status} onRefresh={loadStatus} onOpenSettings={() => setShowSettings(true)} />
 
       {/* Settings Dialog */}
-      <SettingsDialog isOpen={showSettings} onClose={() => setShowSettings(false)} />
+      <SettingsDialog isOpen={showSettings} onClose={() => setShowSettings(false)} onConfigChange={handleConfigChange} />
 
       {/* Tag Setup Dialog */}
       <TagSetupDialog
