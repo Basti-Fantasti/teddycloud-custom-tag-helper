@@ -1,6 +1,8 @@
 import { API_URL } from '../config/apiConfig';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function TonieCard({ tonie, onEdit, onDelete }) {
+  const { t } = useTranslation();
   const coverUrl = tonie.pic
     ? (tonie.pic.startsWith('http://') || tonie.pic.startsWith('https://'))
       ? tonie.pic
@@ -57,7 +59,7 @@ export default function TonieCard({ tonie, onEdit, onDelete }) {
           </div>
           {tonie.tracks && tonie.tracks.length > 0 && (
             <div className="text-xs text-gray-500 dark:text-gray-400">
-              <span className="font-medium">Tracks:</span> {tonie.tracks.length}
+              <span className="font-medium">{t('tonieCard.tracks')}:</span> {tonie.tracks.length}
             </div>
           )}
         </div>
@@ -68,7 +70,7 @@ export default function TonieCard({ tonie, onEdit, onDelete }) {
             onClick={onEdit}
             className="flex-1 inline-flex justify-center items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
           >
-            Edit
+            {t('buttons.edit')}
           </button>
           <button
             onClick={onDelete}

@@ -4,6 +4,53 @@
 
 This project has been prepared for public release on GitHub/Forgejo. All personal information, credentials, and hardcoded values have been removed and made configurable.
 
+---
+
+## [2.1.0] - 2025-12-26
+
+### Added - Complete i18n Translation Support
+
+Added missing translations to 5 frontend components for full German/English language support.
+
+#### Components Updated
+- **TAFLibrary.jsx** - 11 strings translated
+  - Connection error messages, retry button
+  - Statistics labels (Total TAF Files, Linked to Tonies, Orphaned Files)
+  - Filter tabs (All Files, Orphaned, Linked)
+  - Track count, category badges, Create Tonie button
+
+- **TonieEditor.jsx** - 12 strings translated
+  - Form titles (Edit/Create Custom Tonie)
+  - TAF parsing status, library browser button
+  - RFID tag status labels (Unconfigured/Unassigned)
+  - Creative Tonie placement instructions
+  - Cover gallery labels, upload status
+
+- **RFIDTagsView.jsx** - 3 strings translated
+  - Status badges (Assigned/Unconfigured)
+  - No TAF file placeholder
+  - Category badges (Custom/Official)
+
+- **TonieCard.jsx** - 2 strings translated
+  - Tracks label
+  - Edit button (reuses buttons.edit)
+
+- **CoverSelector.jsx** - 2 strings translated
+  - Show less/Show all toggle
+  - No covers found message
+
+#### Locale Files Updated
+- `frontend/src/locales/en.json` - Added 30+ new translation keys
+- `frontend/src/locales/de.json` - Added 30+ German translations
+
+#### New Translation Namespaces
+- `taf.*` - TAF library specific translations
+- `tonieCard.*` - Tonie card component
+- `coverSelector.*` - Cover selector component
+- Extended `tonieEditor.*` and `rfid.*` namespaces
+
+---
+
 ## Major Changes
 
 ### 1. Container Architecture - MERGED

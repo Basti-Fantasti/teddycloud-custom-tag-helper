@@ -5,8 +5,10 @@ import LibraryBrowser from './LibraryBrowser';
 import CoverSelector from './CoverSelector';
 import ConfirmationDialog from './ConfirmationDialog';
 import { useDropzone } from 'react-dropzone';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function TonieEditor({ tonie, tafFile, onSave, onCancel }) {
+  const { t } = useTranslation();
   const isEditMode = !!tonie;
 
   // Form state
@@ -266,7 +268,7 @@ export default function TonieEditor({ tonie, tafFile, onSave, onCancel }) {
   return (
     <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 transition-colors">
       <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
-        {isEditMode ? 'Edit Custom Tonie' : 'Create Custom Tonie'}
+        {isEditMode ? t('tonieEditor.editTitle') : t('tonieEditor.createTitle')}
       </h2>
 
       {error && (
@@ -305,12 +307,12 @@ export default function TonieEditor({ tonie, tafFile, onSave, onCancel }) {
               {parsing ? (
                 <>
                   <div className="animate-spin mr-2 h-5 w-5 border-b-2 border-blue-500"></div>
-                  Parsing TAF...
+                  {t('tonieEditor.parsingTaf')}
                 </>
               ) : selectedTAF ? (
                 <>✓ {selectedTAF}</>
               ) : (
-                <>Browse Library →</>
+                <>{t('tonieEditor.browseLibrary')}</>
               )}
             </button>
           </div>
@@ -402,7 +404,7 @@ export default function TonieEditor({ tonie, tafFile, onSave, onCancel }) {
                     onClick={() => setShowRFIDSelector(!showRFIDSelector)}
                     className="text-xs text-blue-700 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 underline"
                   >
-                    {showRFIDSelector ? 'Hide' : 'Show'}
+                    {showRFIDSelector ? t('tonieEditor.hide') : t('tonieEditor.show')}
                   </button>
                 </div>
 
@@ -426,7 +428,7 @@ export default function TonieEditor({ tonie, tafFile, onSave, onCancel }) {
                             ? 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200'
                             : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'
                         }`}>
-                          {tag.status === 'unconfigured' ? 'Unconfigured' : 'Unassigned'}
+                          {tag.status === 'unconfigured' ? t('tonieEditor.tagStatus.unconfigured') : t('tonieEditor.tagStatus.unassigned')}
                         </span>
                       </button>
                     ))}
@@ -434,14 +436,14 @@ export default function TonieEditor({ tonie, tafFile, onSave, onCancel }) {
                 )}
 
                 <div className="mt-2 text-xs text-blue-700 dark:text-blue-400">
-                  Place a Creative Tonie on your TeddyCloud Box to see it here.
+                  {t('tonieEditor.placeCreativeTonie')}
                 </div>
               </div>
             ) : loadingTags ? (
               <div className="text-sm text-gray-500 dark:text-gray-400">Loading available tags...</div>
             ) : (
               <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-3 text-sm text-yellow-800 dark:text-yellow-200">
-                No available tags found. Place a Creative Tonie on your TeddyCloud Box.
+                {t('tonieEditor.noTagsFound')}
               </div>
             )}
 
@@ -511,7 +513,7 @@ export default function TonieEditor({ tonie, tafFile, onSave, onCancel }) {
                 onClick={() => setShowCoverGallery(true)}
                 className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
               >
-                Choose from library
+                {t('tonieEditor.chooseFromLibrary')}
               </button>
             </div>
             <div className="flex space-x-4">
@@ -551,7 +553,7 @@ export default function TonieEditor({ tonie, tafFile, onSave, onCancel }) {
                   }`}
                 >
                   {uploading ? (
-                    <div className="text-gray-600 dark:text-gray-400">Uploading...</div>
+                    <div className="text-gray-600 dark:text-gray-400">{t('tonieEditor.uploading')}</div>
                   ) : (
                     <>
                       <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -574,7 +576,7 @@ export default function TonieEditor({ tonie, tafFile, onSave, onCancel }) {
             Cancel
           </Button>
           <Button type="submit" variant="primary">
-            {isEditMode ? 'Update Tonie' : 'Create Tonie'}
+            {isEditMode ? t('tonieEditor.updateTonie') : t('tonieEditor.createTonie')}
           </Button>
         </div>
       </form>
@@ -583,11 +585,11 @@ export default function TonieEditor({ tonie, tafFile, onSave, onCancel }) {
       <Modal
         isOpen={showCoverGallery}
         onClose={() => setShowCoverGallery(false)}
-        title="Choose from Library"
+        title={t('tonieEditor.chooseFromLibraryTitle')}
         size="xl"
       >
         {availableCovers.length === 0 ? (
-          <p className="text-gray-500 dark:text-gray-400 text-center py-8">No covers found in library</p>
+          <p className="text-gray-500 dark:text-gray-400 text-center py-8">{t('tonieEditor.noCoversInLibrary')}</p>
         ) : (
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
             {availableCovers.map((cover) => (

@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { API_URL } from '../config/apiConfig';
 import { useTAFLibrary } from '../hooks/useTAFLibrary';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function TAFLibrary({ onCreateTonie }) {
+  const { t } = useTranslation();
   const { tafFiles, stats, loading, error, refresh } = useTAFLibrary();
   const [filter, setFilter] = useState('all'); // 'all', 'linked', 'orphaned'
 
@@ -48,13 +50,13 @@ export default function TAFLibrary({ onCreateTonie }) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-red-800 mb-2">Connection Error</h3>
+            <h3 className="text-sm font-semibold text-red-800 mb-2">{t('taf.connectionError')}</h3>
             <p className="text-sm text-red-700 whitespace-pre-wrap">{error}</p>
             <button
               onClick={refresh}
               className="mt-4 inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
             >
-              Retry
+              {t('taf.retry')}
             </button>
           </div>
         </div>
@@ -67,15 +69,15 @@ export default function TAFLibrary({ onCreateTonie }) {
       {/* Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 transition-colors">
-          <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total TAF Files</div>
+          <div className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('taf.statistics.total')}</div>
           <div className="mt-1 text-3xl font-semibold text-gray-900 dark:text-white">{stats.total}</div>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 transition-colors">
-          <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Linked to Tonies</div>
+          <div className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('taf.statistics.linked')}</div>
           <div className="mt-1 text-3xl font-semibold text-green-600 dark:text-green-400">{stats.linked}</div>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 transition-colors">
-          <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Orphaned Files</div>
+          <div className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('taf.statistics.orphaned')}</div>
           <div className="mt-1 text-3xl font-semibold text-orange-600 dark:text-orange-400">{stats.orphaned}</div>
         </div>
       </div>
@@ -92,7 +94,7 @@ export default function TAFLibrary({ onCreateTonie }) {
                   : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300'
               } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
             >
-              All Files ({stats.total})
+              {t('taf.filters.all')} ({stats.total})
             </button>
             <button
               onClick={() => setFilter('orphaned')}
@@ -102,7 +104,7 @@ export default function TAFLibrary({ onCreateTonie }) {
                   : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300'
               } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
             >
-              Orphaned ({stats.orphaned})
+              {t('taf.filters.orphaned')} ({stats.orphaned})
             </button>
             <button
               onClick={() => setFilter('linked')}
@@ -112,7 +114,7 @@ export default function TAFLibrary({ onCreateTonie }) {
                   : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300'
               } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}
             >
-              Linked ({stats.linked})
+              {t('taf.filters.linked')} ({stats.linked})
             </button>
           </nav>
         </div>
@@ -172,7 +174,7 @@ export default function TAFLibrary({ onCreateTonie }) {
                             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                             </svg>
-                            {file.track_count} tracks
+                            {file.track_count} {t('taf.tracks')}
                           </span>
                         )}
                         {file.track_seconds && (
@@ -228,7 +230,7 @@ export default function TAFLibrary({ onCreateTonie }) {
                               ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
                               : 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
                           }`}>
-                            {file.linked_tonie.category === 'custom' ? 'Custom' : 'Official'}
+                            {file.linked_tonie.category === 'custom' ? t('taf.category.custom') : t('taf.category.official')}
                           </span>
                         </div>
                       </div>
@@ -241,7 +243,7 @@ export default function TAFLibrary({ onCreateTonie }) {
                       <svg className="-ml-0.5 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                       </svg>
-                      Create Tonie
+                      {t('taf.createTonie')}
                     </button>
                   )}
                 </div>
@@ -251,8 +253,8 @@ export default function TAFLibrary({ onCreateTonie }) {
 
           {filteredFiles.length === 0 && (
             <div className="px-6 py-12 text-center text-gray-500">
-              No TAF files found
-              {filter !== 'all' && ` in ${filter} category`}.
+              {t('taf.noFilesFound')}
+              {filter !== 'all' && ` ${t('rfid.inCategory')} "${t(`taf.filters.${filter}`)}"`}.
             </div>
           )}
         </div>

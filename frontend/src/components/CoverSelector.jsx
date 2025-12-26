@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { API_URL } from '../config/apiConfig';
+import { useTranslation } from '../hooks/useTranslation';
 
 export default function CoverSelector({
   suggestedCovers,
@@ -12,6 +13,7 @@ export default function CoverSelector({
   const [customSearch, setCustomSearch] = useState(searchTerm || '');
   const [searching, setSearching] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
+  const { t } = useTranslation();
 
   const handleCustomSearch = async () => {
     if (!customSearch.trim()) return;
@@ -127,7 +129,7 @@ export default function CoverSelector({
           onClick={() => setShowAllCovers(!showAllCovers)}
           className="text-sm text-blue-600 hover:text-blue-800 font-medium"
         >
-          {showAllCovers ? '← Show less' : `Show all ${coversToShow.length} covers →`}
+          {showAllCovers ? t('coverSelector.showLess') : t('coverSelector.showAll', { count: coversToShow.length })}
         </button>
       )}
 
@@ -171,7 +173,7 @@ export default function CoverSelector({
           <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          <p className="mt-2 text-sm">No covers found. Try a custom search above.</p>
+          <p className="mt-2 text-sm">{t('coverSelector.noCoversFound')}</p>
         </div>
       )}
     </div>

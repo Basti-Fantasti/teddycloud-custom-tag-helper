@@ -51,13 +51,9 @@ export default function RFIDTagsView({ onAssignTag }) {
       assigned: 'bg-green-100 text-green-800',
       unconfigured: 'bg-orange-100 text-orange-800'
     };
-    const labels = {
-      assigned: 'Assigned',
-      unconfigured: 'Unconfigured'
-    };
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badges[status]}`}>
-        {labels[status]}
+        {t(`rfid.status.${status}`)}
       </span>
     );
   };
@@ -203,7 +199,7 @@ export default function RFIDTagsView({ onAssignTag }) {
                       </div>
                     </div>
                   ) : (
-                    <div className="text-sm text-gray-400 dark:text-gray-600 italic">No TAF file</div>
+                    <div className="text-sm text-gray-400 dark:text-gray-600 italic">{t('rfid.noTafFile')}</div>
                   )}
                 </div>
 
@@ -252,7 +248,7 @@ export default function RFIDTagsView({ onAssignTag }) {
                           ? 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200'
                           : 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
                       }`}>
-                        {tag.linked_tonie.category === 'custom' ? 'Custom' : 'Official'}
+                        {tag.linked_tonie.category === 'custom' ? t('taf.category.custom') : t('taf.category.official')}
                       </span>
                     </div>
                   ) : (

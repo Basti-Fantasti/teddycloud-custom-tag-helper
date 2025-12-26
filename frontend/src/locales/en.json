@@ -36,6 +36,7 @@
       "unconfigured": "Unconfigured"
     },
     "noTagsFound": "No RFID tags found",
+    "noTafFile": "No TAF file",
     "inCategory": "in category"
   },
   "tagStatus": {
@@ -113,6 +114,51 @@
     "createSuccess": "Tonie created successfully!",
     "updateSuccess": "Tonie updated successfully!",
     "deleteSuccess": "Tonie deleted successfully!",
-    "error": "An error occurred"
+    "error": "An error occurred",
+    "parsingTaf": "Parsing TAF...",
+    "browseLibrary": "Browse Library →",
+    "hide": "Hide",
+    "show": "Show",
+    "tagStatus": {
+      "unconfigured": "Unconfigured",
+      "unassigned": "Unassigned"
+    },
+    "placeCreativeTonie": "Place a Creative Tonie on your TeddyCloud Box to see it here.",
+    "noTagsFound": "No available tags found. Place a Creative Tonie on your TeddyCloud Box.",
+    "chooseFromLibrary": "Choose from library",
+    "chooseFromLibraryTitle": "Choose from Library",
+    "uploading": "Uploading...",
+    "updateTonie": "Update Tonie",
+    "createTonie": "Create Tonie",
+    "noCoversInLibrary": "No covers found in library"
+  },
+  "taf": {
+    "connectionError": "Connection Error",
+    "retry": "Retry",
+    "statistics": {
+      "total": "Total TAF Files",
+      "linked": "Linked to Tonies",
+      "orphaned": "Orphaned Files"
+    },
+    "filters": {
+      "all": "All Files",
+      "orphaned": "Orphaned",
+      "linked": "Linked"
+    },
+    "tracks": "tracks",
+    "category": {
+      "custom": "Custom",
+      "official": "Official"
+    },
+    "createTonie": "Create Tonie",
+    "noFilesFound": "No TAF files found"
+  },
+  "tonieCard": {
+    "tracks": "Tracks"
+  },
+  "coverSelector": {
+    "showLess": "← Show less",
+    "showAll": "Show all {{count}} covers →",
+    "noCoversFound": "No covers found. Try a custom search above."
   }
 }

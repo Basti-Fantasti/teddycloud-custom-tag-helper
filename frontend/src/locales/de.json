@@ -36,6 +36,7 @@
       "unconfigured": "Nicht konfiguriert"
     },
     "noTagsFound": "Keine RFID Tags gefunden",
+    "noTafFile": "Keine TAF Datei",
     "inCategory": "in Kategorie"
   },
   "tagStatus": {
@@ -113,6 +114,51 @@
     "createSuccess": "Tonie erfolgreich erstellt!",
     "updateSuccess": "Tonie erfolgreich aktualisiert!",
     "deleteSuccess": "Tonie erfolgreich gelöscht!",
-    "error": "Ein Fehler ist aufgetreten"
+    "error": "Ein Fehler ist aufgetreten",
+    "parsingTaf": "TAF wird analysiert...",
+    "browseLibrary": "Bibliothek durchsuchen →",
+    "hide": "Verbergen",
+    "show": "Anzeigen",
+    "tagStatus": {
+      "unconfigured": "Nicht konfiguriert",
+      "unassigned": "Nicht zugewiesen"
+    },
+    "placeCreativeTonie": "Platzieren Sie einen Creative Tonie auf Ihrer TeddyCloud Box, um ihn hier zu sehen.",
+    "noTagsFound": "Keine verfügbaren Tags gefunden. Platzieren Sie einen Creative Tonie auf Ihrer TeddyCloud Box.",
+    "chooseFromLibrary": "Aus Bibliothek wählen",
+    "chooseFromLibraryTitle": "Aus Bibliothek auswählen",
+    "uploading": "Wird hochgeladen...",
+    "updateTonie": "Tonie aktualisieren",
+    "createTonie": "Tonie erstellen",
+    "noCoversInLibrary": "Keine Cover in der Bibliothek gefunden"
+  },
+  "taf": {
+    "connectionError": "Verbindungsfehler",
+    "retry": "Erneut versuchen",
+    "statistics": {
+      "total": "Gesamt TAF Dateien",
+      "linked": "Mit Tonies verknüpft",
+      "orphaned": "Verwaiste Dateien"
+    },
+    "filters": {
+      "all": "Alle Dateien",
+      "orphaned": "Verwaist",
+      "linked": "Verknüpft"
+    },
+    "tracks": "Titel",
+    "category": {
+      "custom": "Eigene",
+      "official": "Offiziell"
+    },
+    "createTonie": "Tonie erstellen",
+    "noFilesFound": "Keine TAF Dateien gefunden"
+  },
+  "tonieCard": {
+    "tracks": "Titel"
+  },
+  "coverSelector": {
+    "showLess": "← Weniger anzeigen",
+    "showAll": "Alle {{count}} Cover anzeigen →",
+    "noCoversFound": "Keine Cover gefunden. Versuchen Sie eine eigene Suche oben."
   }
 }
