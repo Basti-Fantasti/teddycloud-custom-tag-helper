@@ -7,7 +7,7 @@ import ConfirmationDialog from './ConfirmationDialog';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from '../hooks/useTranslation';
 
-export default function TonieEditor({ tonie, tafFile, onSave, onCancel }) {
+export default function TonieEditor({ tonie, tafFile, defaultLanguage = 'en-us', onSave, onCancel }) {
   const { t } = useTranslation();
   const isEditMode = !!tonie;
 
@@ -19,7 +19,7 @@ export default function TonieEditor({ tonie, tafFile, onSave, onCancel }) {
     series: tonie?.series || '',
     episodes: tonie?.episodes || '',
     title: tonie?.title || '',
-    language: tonie?.language || 'en-us',
+    language: tonie?.language || defaultLanguage,
     pic: tonie?.pic || '',
     tracks: tonie?.tracks || [],
   });

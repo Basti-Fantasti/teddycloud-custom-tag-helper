@@ -6,6 +6,27 @@ This project has been prepared for public release on GitHub/Forgejo. All persona
 
 ---
 
+## [2.2.1] - 2025-12-26
+
+### Fixed - Default Language Not Applied to New Tonies
+
+Fixed an issue where new tonies always defaulted to 'en-us' language regardless of the `default_language` setting in `config.yaml`.
+
+#### Root Cause
+- `TonieEditor.jsx` hardcoded the fallback language to 'en-us'
+- `Dashboard.jsx` loaded the config but didn't pass `default_language` to `TonieEditor`
+
+#### Files Changed
+- **Dashboard.jsx** - Now extracts and passes `defaultLanguage` prop to `TonieEditor`
+- **TonieEditor.jsx** - Accepts `defaultLanguage` prop and uses it instead of hardcoded 'en-us'
+
+#### Acceptance Criteria Met
+- [x] New tonies use `config.default_language` when no language specified
+- [x] Existing tonies retain their language when editing
+- [x] Setting `de-de` in config results in German default
+
+---
+
 ## [2.2.0] - 2025-12-26
 
 ### Added - Frontend Pagination UI

@@ -37,6 +37,7 @@ export default function Dashboard() {
   const [rfidTags, setRfidTags] = useState([]);
   const [viewMode, setViewMode] = useState('taf'); // 'taf', 'tonies', or 'rfid'
   const [selectedBox, setSelectedBox] = useState(null);
+  const [defaultLanguage, setDefaultLanguage] = useState('en-us');
   const [darkMode, setDarkMode] = useState(() => {
     // Initialize from localStorage or system preference
     const saved = localStorage.getItem('darkMode');
@@ -116,6 +117,9 @@ export default function Dashboard() {
       const response = await fetch(`${API_URL}/api/config`);
       const data = await response.json();
       setSelectedBox(data.app.selected_box);
+      if (data.app.default_language) {
+        setDefaultLanguage(data.app.default_language);
+      }
     } catch (err) {
       console.error('Failed to load config:', err);
     }
@@ -339,6 +343,7 @@ export default function Dashboard() {
           <TonieEditor
             tonie={editingTonie}
             tafFile={selectedTafFile}
+            defaultLanguage={defaultLanguage}
             onSave={handleSave}
             onCancel={handleCancel}
           />
