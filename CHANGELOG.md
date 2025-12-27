@@ -107,6 +107,48 @@ Added batch processing translations in both English and German:
 - **Modified**: `frontend/src/locales/en.json` - English translations
 - **Modified**: `frontend/src/pages/Dashboard.jsx` - Wizard integration
 
+### Added - Setup Wizard Language Selection as First Step
+
+Added language selection as the very first step of the setup wizard, with automatic browser language detection.
+
+#### Problem Solved
+- Setup wizard was always displayed in English
+- Users had to navigate through 4 steps before finding language settings in step 5
+- Non-English speakers struggled to complete setup
+
+#### Solution
+- **Step 0**: New language selection step with flag icons (🇬🇧/🇩🇪)
+- **Browser Detection**: Automatically detects browser language and pre-selects matching option
+- **Immediate Effect**: Language change applies instantly to all wizard text
+- **Persistent**: Selection saved to localStorage immediately
+
+#### Implementation Details
+
+**TranslationContext.jsx**
+- Added `detectBrowserLanguage()` function using `navigator.language`
+- Maps browser language to supported languages (en, de)
+- Falls back to 'en' for unsupported languages
+- Checks localStorage first, then uses browser detection
+
+**SetupWizard.jsx**
+- Added Step 0: Language Selection with visual flag buttons
+- Shifted existing steps from 1-5 to 0-5 (now 6 total steps)
+- All hardcoded English strings replaced with `t()` translation function
+- Added full dark mode support
+
+**Locale Files**
+- Added complete `setupWizard` namespace with 50+ translation keys
+- Full German translations for all wizard text
+- Includes: step titles, descriptions, buttons, status messages
+
+#### Files Changed
+- **Modified**: `frontend/src/context/TranslationContext.jsx` - Browser language detection
+- **Modified**: `frontend/src/components/SetupWizard.jsx` - Language step, i18n support
+- **Modified**: `frontend/src/locales/en.json` - Added setupWizard translations
+- **Modified**: `frontend/src/locales/de.json` - Added German setupWizard translations
+
+---
+
 ### Fixed - Setup Dialog Shows Incorrectly on Container Updates
 
 Fixed a bug where the initial setup dialog would appear when updating to a newer container version, even when the app was already configured.
@@ -122,6 +164,36 @@ The first-run detection checked TeddyCloud connectivity when using the default U
 #### Files Changed
 - **Modified**: `backend/app/api/setup.py` - Check `setup_completed` flag before connectivity test
 - **Modified**: `backend/app/main.py` - Add migration for existing configs
+
+### Fixed - Settings Dialog Not Showing Environment Variable Values
+
+Fixed an issue where the settings dialog did not properly display or protect values set via environment variables (e.g., `TEDDYCLOUD_URL`).
+
+#### Root Cause
+- Backend only read 2 specific env vars (`TEDDYCLOUD_URL`, `TEDDYCLOUD_DATA_PATH`) but didn't track their source
+- GET `/api/config` returned merged values without indicating which came from env vars
+- PUT `/api/config` would overwrite env-sourced values in config.yaml
+- UI had no awareness of which values were from env vars vs config file
+
+#### Solution
+- **Backend**: Track which config keys are set via environment variables
+- **API**: Return `_env_sources` array in GET `/api/config` response
+- **API**: Skip writing env-sourced values when saving config (preserve env var priority)
+- **Frontend**: Display env-sourced values as read-only with amber "ENV" badge
+- **Frontend**: Show helper text explaining the value is set via environment variable
+
+#### User Experience
+- Values from environment variables now appear with an amber "ENV" badge
+- These fields are disabled (read-only) to prevent accidental modification
+- Helper text shows which environment variable controls the setting
+- Non-env values remain fully editable
+
+#### Files Changed
+- **Modified**: `backend/app/config.py` - Track env-sourced keys, added `get_env_sourced_keys()`
+- **Modified**: `backend/app/main.py` - Return `_env_sources` in GET, skip env values in PUT
+- **Modified**: `frontend/src/components/SettingsDialog.jsx` - Added EnvBadge, disabled env fields
+- **Modified**: `frontend/src/locales/en.json` - Added `settings.envVarSet` translation
+- **Modified**: `frontend/src/locales/de.json` - Added German translation
 
 ---
 

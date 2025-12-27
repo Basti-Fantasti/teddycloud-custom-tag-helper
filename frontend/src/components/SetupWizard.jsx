@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { setupAPI } from '../api/client';
+import { TranslationContext } from '../context/TranslationContext';
 
 const SetupWizard = ({ onComplete }) => {
-  const [step, setStep] = useState(1);
+  const { language, setLanguage, t } = useContext(TranslationContext);
+  const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -14,7 +16,7 @@ const SetupWizard = ({ onComplete }) => {
     teddycloud_url: 'http://docker',
     custom_img_path: '/data/library/own/pics',
     custom_img_json_path: '/library/own/pics',
-    ui_language: 'en',
+    ui_language: language,
     default_language: 'de-de',
     auto_parse_taf: true,
     selected_box: null,
@@ -24,13 +26,20 @@ const SetupWizard = ({ onComplete }) => {
   const [teddycloudTest, setTeddycloudTest] = useState(null);
   const [boxes, setBoxes] = useState([]);
 
-  // Auto-detect on mount
+  // Total number of steps (0-5)
+  const TOTAL_STEPS = 6;
+
+  // Update config when language changes
+  useEffect(() => {
+    setConfig(prev => ({ ...prev, ui_language: language }));
+  }, [language]);
+
+  // Auto-detect on mount (but don't show loading on language step)
   useEffect(() => {
     detectDataAccess();
   }, []);
 
   const detectDataAccess = async () => {
-    setLoading(true);
     try {
       const response = await setupAPI.detectDataAccess();
       setDetection(response.data);
@@ -47,7 +56,6 @@ const SetupWizard = ({ onComplete }) => {
       console.error('Auto-detection failed:', err);
       setDetection({ volume_available: false });
     }
-    setLoading(false);
   };
 
   const testTeddyCloudConnection = async () => {
@@ -62,10 +70,10 @@ const SetupWizard = ({ onComplete }) => {
           setConfig(prev => ({ ...prev, selected_box: response.data.boxes[0].id }));
         }
       } else {
-        setError(response.data.error || 'Connection failed');
+        setError(response.data.error || t('setupWizard.connection.failed'));
       }
     } catch (err) {
-      setError(err.response?.data?.detail || 'Connection test failed');
+      setError(err.response?.data?.detail || t('setupWizard.connection.failed'));
       setTeddycloudTest({ success: false });
     }
     setLoading(false);
@@ -83,74 +91,136 @@ const SetupWizard = ({ onComplete }) => {
     }
   };
 
+  const handleLanguageSelect = (lang) => {
+    setLanguage(lang);
+  };
+
   const nextStep = () => setStep(step + 1);
   const prevStep = () => setStep(step - 1);
 
   const canProceed = () => {
+    if (step === 0) return true; // Language step - always can proceed
     if (step === 1) return detection !== null;
     if (step === 2) return teddycloudTest?.success;
     return true;
   };
 
+  const getLanguageDisplayName = (langCode) => {
+    return t(`setupWizard.languages.${langCode}`);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full p-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            TeddyCloud Custom Tag Helper
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            {t('setupWizard.title')}
           </h1>
-          <p className="text-gray-600">Setup Wizard - Step {step} of 5</p>
-          <div className="mt-4 w-full bg-gray-200 rounded-full h-2">
+          <p className="text-gray-600 dark:text-gray-400">
+            {t('setupWizard.stepOf', { current: step + 1, total: TOTAL_STEPS })}
+          </p>
+          <div className="mt-4 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
             <div
               className="bg-blue-600 h-2 rounded-full transition-all"
-              style={{ width: `${(step / 5) * 100}%` }}
+              style={{ width: `${((step + 1) / TOTAL_STEPS) * 100}%` }}
             />
           </div>
         </div>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400">
             {error}
+          </div>
+        )}
+
+        {/* Step 0: Language Selection */}
+        {step === 0 && (
+          <div>
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+              {t('setupWizard.language.title')}
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              {t('setupWizard.language.description')}
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                onClick={() => handleLanguageSelect('en')}
+                className={`p-6 rounded-lg border-2 transition-all flex flex-col items-center gap-3 ${
+                  language === 'en'
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
+                    : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500'
+                }`}
+              >
+                <span className="text-4xl">🇬🇧</span>
+                <span className="font-medium text-gray-900 dark:text-white">English</span>
+              </button>
+              <button
+                onClick={() => handleLanguageSelect('de')}
+                className={`p-6 rounded-lg border-2 transition-all flex flex-col items-center gap-3 ${
+                  language === 'de'
+                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
+                    : 'border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500'
+                }`}
+              >
+                <span className="text-4xl">🇩🇪</span>
+                <span className="font-medium text-gray-900 dark:text-white">Deutsch</span>
+              </button>
+            </div>
+            <p className="text-sm text-gray-500 dark:text-gray-500 mt-4 text-center">
+              {t('setupWizard.language.detected', { language: getLanguageDisplayName(language) })}
+            </p>
           </div>
         )}
 
         {/* Step 1: Data Access Detection */}
         {step === 1 && (
           <div>
-            <h2 className="text-xl font-semibold mb-4">Data Access Detection</h2>
-            {loading ? (
-              <p className="text-gray-600">Detecting data access methods...</p>
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+              {t('setupWizard.dataAccess.title')}
+            </h2>
+            {detection === null ? (
+              <p className="text-gray-600 dark:text-gray-400">
+                {t('setupWizard.dataAccess.detecting')}
+              </p>
             ) : detection ? (
               <div className="space-y-4">
                 {detection.volume_available ? (
-                  <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="p-4 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg">
                     <div className="flex items-center mb-2">
-                      <svg className="w-6 h-6 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-6 h-6 text-green-600 dark:text-green-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
-                      <h3 className="font-semibold text-green-900">Volume Mount Detected</h3>
+                      <h3 className="font-semibold text-green-900 dark:text-green-300">
+                        {t('setupWizard.dataAccess.volumeDetected')}
+                      </h3>
                     </div>
-                    <p className="text-green-700 text-sm mb-2">TeddyCloud data is accessible via volume mount</p>
-                    <ul className="text-sm text-green-600 space-y-1">
-                      <li>• Volume Path: {detection.volume_path}</li>
-                      <li>• TAF Files Found: {detection.taf_files_found}</li>
-                      <li>• Tonies Found: {detection.tonies_found}</li>
+                    <p className="text-green-700 dark:text-green-400 text-sm mb-2">
+                      {t('setupWizard.dataAccess.volumeDescription')}
+                    </p>
+                    <ul className="text-sm text-green-600 dark:text-green-400 space-y-1">
+                      <li>• {t('setupWizard.dataAccess.volumePath')}: {detection.volume_path}</li>
+                      <li>• {t('setupWizard.dataAccess.tafFilesFound')}: {detection.taf_files_found}</li>
+                      <li>• {t('setupWizard.dataAccess.toniesFound')}: {detection.tonies_found}</li>
                       {detection.image_paths.length > 0 && (
-                        <li>• Image Directories: {detection.image_paths.join(', ')}</li>
+                        <li>• {t('setupWizard.dataAccess.imageDirectories')}: {detection.image_paths.join(', ')}</li>
                       )}
                     </ul>
                   </div>
                 ) : (
-                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <h3 className="font-semibold text-yellow-900 mb-2">No Volume Detected</h3>
-                    <p className="text-yellow-700 text-sm">
-                      No TeddyCloud volume mount found. Please mount your TeddyCloud data directory at /data before proceeding.
+                  <div className="p-4 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                    <h3 className="font-semibold text-yellow-900 dark:text-yellow-300 mb-2">
+                      {t('setupWizard.dataAccess.noVolumeDetected')}
+                    </h3>
+                    <p className="text-yellow-700 dark:text-yellow-400 text-sm">
+                      {t('setupWizard.dataAccess.noVolumeDescription')}
                     </p>
                   </div>
                 )}
               </div>
             ) : (
-              <p className="text-red-600">Failed to detect data access</p>
+              <p className="text-red-600 dark:text-red-400">
+                {t('setupWizard.dataAccess.detectionFailed')}
+              </p>
             )}
           </div>
         )}
@@ -158,21 +228,23 @@ const SetupWizard = ({ onComplete }) => {
         {/* Step 2: TeddyCloud Connection */}
         {step === 2 && (
           <div>
-            <h2 className="text-xl font-semibold mb-4">TeddyCloud Connection</h2>
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+              {t('setupWizard.connection.title')}
+            </h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  TeddyCloud URL
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('setupWizard.connection.urlLabel')}
                 </label>
                 <input
                   type="text"
                   value={config.teddycloud_url}
                   onChange={(e) => setConfig({ ...config, teddycloud_url: e.target.value })}
-                  placeholder="http://docker"
-                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder={t('setupWizard.connection.urlPlaceholder')}
+                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Enter the URL where TeddyCloud is running (without /web suffix)
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {t('setupWizard.connection.urlHelp')}
                 </p>
               </div>
 
@@ -181,23 +253,29 @@ const SetupWizard = ({ onComplete }) => {
                 disabled={loading}
                 className="w-full py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
               >
-                {loading ? 'Testing...' : 'Test Connection'}
+                {loading ? t('setupWizard.connection.testing') : t('setupWizard.connection.testConnection')}
               </button>
 
               {teddycloudTest && (
                 <div className={`p-4 rounded-lg border ${
                   teddycloudTest.success
-                    ? 'bg-green-50 border-green-200'
-                    : 'bg-red-50 border-red-200'
+                    ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-800'
+                    : 'bg-red-50 dark:bg-red-900/30 border-red-200 dark:border-red-800'
                 }`}>
                   <p className={`font-semibold ${
-                    teddycloudTest.success ? 'text-green-900' : 'text-red-900'
+                    teddycloudTest.success
+                      ? 'text-green-900 dark:text-green-300'
+                      : 'text-red-900 dark:text-red-300'
                   }`}>
-                    {teddycloudTest.success ? 'Connection Successful!' : 'Connection Failed'}
+                    {teddycloudTest.success
+                      ? t('setupWizard.connection.success')
+                      : t('setupWizard.connection.failed')}
                   </p>
                   {boxes.length > 0 && (
-                    <p className="text-sm text-green-700 mt-1">
-                      Found {boxes.length} Toniebox{boxes.length > 1 ? 'es' : ''}
+                    <p className="text-sm text-green-700 dark:text-green-400 mt-1">
+                      {boxes.length > 1
+                        ? t('setupWizard.connection.boxesFoundPlural', { count: boxes.length })
+                        : t('setupWizard.connection.boxesFound', { count: boxes.length })}
                     </p>
                   )}
                 </div>
@@ -209,42 +287,46 @@ const SetupWizard = ({ onComplete }) => {
         {/* Step 3: Image Storage */}
         {step === 3 && (
           <div>
-            <h2 className="text-xl font-semibold mb-4">Image Storage</h2>
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+              {t('setupWizard.imageStorage.title')}
+            </h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Physical Image Path (Filesystem)
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('setupWizard.imageStorage.physicalPathLabel')}
                 </label>
                 <input
                   type="text"
                   value={config.custom_img_path}
                   onChange={(e) => setConfig({ ...config, custom_img_path: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Where cover images will be saved on disk
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {t('setupWizard.imageStorage.physicalPathHelp')}
                 </p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  JSON Image Path (TeddyCloud)
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('setupWizard.imageStorage.jsonPathLabel')}
                 </label>
                 <input
                   type="text"
                   value={config.custom_img_json_path}
                   onChange={(e) => setConfig({ ...config, custom_img_json_path: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Path used in tonies.custom.json (usually without /data prefix)
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {t('setupWizard.imageStorage.jsonPathHelp')}
                 </p>
               </div>
 
               {detection?.image_paths && detection.image_paths.length > 0 && (
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm font-medium text-blue-900 mb-2">Detected Paths:</p>
-                  <ul className="text-sm text-blue-700 space-y-1">
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <p className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">
+                    {t('setupWizard.imageStorage.detectedPaths')}
+                  </p>
+                  <ul className="text-sm text-blue-700 dark:text-blue-400 space-y-1">
                     {detection.image_paths.map((path, idx) => (
                       <li key={idx}>
                         <button
@@ -253,7 +335,7 @@ const SetupWizard = ({ onComplete }) => {
                             custom_img_path: path,
                             custom_img_json_path: path.replace('/data', ''),
                           })}
-                          className="text-blue-600 hover:underline"
+                          className="text-blue-600 dark:text-blue-400 hover:underline"
                         >
                           {path}
                         </button>
@@ -269,16 +351,18 @@ const SetupWizard = ({ onComplete }) => {
         {/* Step 4: Toniebox Selection */}
         {step === 4 && (
           <div>
-            <h2 className="text-xl font-semibold mb-4">Toniebox Selection</h2>
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+              {t('setupWizard.boxSelection.title')}
+            </h2>
             {boxes.length > 0 ? (
               <div className="space-y-2">
-                <p className="text-sm text-gray-600 mb-3">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                   {boxes.length > 1
-                    ? 'Multiple Tonieboxes detected. Select your primary box:'
-                    : 'One Toniebox detected:'}
+                    ? t('setupWizard.boxSelection.multipleDetected')
+                    : t('setupWizard.boxSelection.oneDetected')}
                 </p>
                 {boxes.map((box) => (
-                  <label key={box.id} className="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <label key={box.id} className="flex items-center p-3 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
                     <input
                       type="radio"
                       name="box"
@@ -288,19 +372,19 @@ const SetupWizard = ({ onComplete }) => {
                       className="mr-3"
                     />
                     <div>
-                      <p className="font-medium">{box.name}</p>
-                      <p className="text-xs text-gray-500">ID: {box.id}</p>
+                      <p className="font-medium text-gray-900 dark:text-white">{box.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">ID: {box.id}</p>
                     </div>
                   </label>
                 ))}
-                <p className="text-xs text-gray-500 mt-2">
-                  You can change this later in settings (optional)
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  {t('setupWizard.boxSelection.changeLater')}
                 </p>
               </div>
             ) : (
-              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                <p className="text-gray-700">
-                  No Tonieboxes detected or multiple boxes available. You can skip this step and configure later.
+              <div className="p-4 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg">
+                <p className="text-gray-700 dark:text-gray-300">
+                  {t('setupWizard.boxSelection.noBoxes')}
                 </p>
               </div>
             )}
@@ -310,30 +394,35 @@ const SetupWizard = ({ onComplete }) => {
         {/* Step 5: Preferences */}
         {step === 5 && (
           <div>
-            <h2 className="text-xl font-semibold mb-4">Preferences</h2>
+            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
+              {t('setupWizard.preferences.title')}
+            </h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  UI Language
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('setupWizard.preferences.uiLanguage')}
                 </label>
                 <select
                   value={config.ui_language}
-                  onChange={(e) => setConfig({ ...config, ui_language: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  onChange={(e) => {
+                    setConfig({ ...config, ui_language: e.target.value });
+                    setLanguage(e.target.value);
+                  }}
+                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 >
-                  <option value="en">English</option>
-                  <option value="de">Deutsch</option>
+                  <option value="en">{t('setupWizard.languages.en')}</option>
+                  <option value="de">{t('setupWizard.languages.de')}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Default Audio Language
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('setupWizard.preferences.audioLanguage')}
                 </label>
                 <select
                   value={config.default_language}
                   onChange={(e) => setConfig({ ...config, default_language: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 >
                   <option value="de-de">Deutsch</option>
                   <option value="en-us">English (US)</option>
@@ -342,7 +431,7 @@ const SetupWizard = ({ onComplete }) => {
                 </select>
               </div>
 
-              <label className="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+              <label className="flex items-center p-3 border dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={config.auto_parse_taf}
@@ -350,20 +439,28 @@ const SetupWizard = ({ onComplete }) => {
                   className="mr-3"
                 />
                 <div>
-                  <p className="font-medium">Auto-parse TAF files</p>
-                  <p className="text-xs text-gray-500">
-                    Automatically extract metadata when selecting TAF files
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    {t('setupWizard.preferences.autoParseTaf')}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {t('setupWizard.preferences.autoParseTafDescription')}
                   </p>
                 </div>
               </label>
 
-              <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h3 className="font-semibold text-blue-900 mb-2">Configuration Summary</h3>
-                <ul className="text-sm text-blue-700 space-y-1">
-                  <li>• TeddyCloud: {config.teddycloud_url}</li>
-                  <li>• Images: {config.custom_img_path}</li>
-                  {config.selected_box && <li>• Selected Box: {boxes.find(b => b.id === config.selected_box)?.name}</li>}
-                  <li>• Auto-parse TAF: {config.auto_parse_taf ? 'Enabled' : 'Disabled'}</li>
+              <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <h3 className="font-semibold text-blue-900 dark:text-blue-300 mb-2">
+                  {t('setupWizard.preferences.summary')}
+                </h3>
+                <ul className="text-sm text-blue-700 dark:text-blue-400 space-y-1">
+                  <li>• {t('setupWizard.preferences.teddycloud')}: {config.teddycloud_url}</li>
+                  <li>• {t('setupWizard.preferences.images')}: {config.custom_img_path}</li>
+                  {config.selected_box && (
+                    <li>• {t('setupWizard.preferences.selectedBox')}: {boxes.find(b => b.id === config.selected_box)?.name}</li>
+                  )}
+                  <li>• {t('setupWizard.preferences.autoParseTaf')}: {config.auto_parse_taf
+                    ? t('setupWizard.preferences.autoParseTafEnabled')
+                    : t('setupWizard.preferences.autoParseTafDisabled')}</li>
                 </ul>
               </div>
             </div>
@@ -371,13 +468,13 @@ const SetupWizard = ({ onComplete }) => {
         )}
 
         {/* Navigation */}
-        <div className="flex justify-between mt-8 pt-6 border-t">
+        <div className="flex justify-between mt-8 pt-6 border-t dark:border-gray-700">
           <button
             onClick={prevStep}
-            disabled={step === 1 || loading}
-            className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={step === 0 || loading}
+            className="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed text-gray-700 dark:text-gray-300"
           >
-            Back
+            {t('setupWizard.back')}
           </button>
 
           {step < 5 ? (
@@ -386,7 +483,7 @@ const SetupWizard = ({ onComplete }) => {
               disabled={!canProceed() || loading}
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              Next
+              {t('setupWizard.next')}
             </button>
           ) : (
             <button
@@ -394,7 +491,7 @@ const SetupWizard = ({ onComplete }) => {
               disabled={loading}
               className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400"
             >
-              {loading ? 'Saving...' : 'Complete Setup'}
+              {loading ? t('setupWizard.saving') : t('setupWizard.completeSetup')}
             </button>
           )}
         </div>

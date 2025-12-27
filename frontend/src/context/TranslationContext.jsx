@@ -10,13 +10,35 @@ const translations = {
   de
 };
 
+// Supported languages
+const SUPPORTED_LANGUAGES = ['en', 'de'];
+
+/**
+ * Detect browser language and map to supported language
+ * @returns {string} Language code ('en' or 'de')
+ */
+function detectBrowserLanguage() {
+  // Get browser language (e.g., 'de-DE', 'en-US', 'de')
+  const browserLang = navigator.language || navigator.userLanguage || 'en';
+
+  // Extract primary language code (e.g., 'de-DE' -> 'de')
+  const primaryLang = browserLang.split('-')[0].toLowerCase();
+
+  // Return if supported, otherwise default to 'en'
+  return SUPPORTED_LANGUAGES.includes(primaryLang) ? primaryLang : 'en';
+}
+
 // Create context
 export const TranslationContext = createContext();
 
 export function TranslationProvider({ children }) {
   const [language, setLanguage] = useState(() => {
-    // Load from localStorage or default to 'en'
-    return localStorage.getItem('uiLanguage') || 'en';
+    // Load from localStorage, or detect browser language as fallback
+    const stored = localStorage.getItem('uiLanguage');
+    if (stored) {
+      return stored;
+    }
+    return detectBrowserLanguage();
   });
 
   useEffect(() => {

@@ -110,7 +110,8 @@
     "testError": "Verbindung fehlgeschlagen",
     "discard": "Verwerfen",
     "saveAndRestart": "Speichern & Neustarten",
-    "saving": "Speichere..."
+    "saving": "Speichere...",
+    "envVarSet": "Über Umgebungsvariable gesetzt ({var})"
   },
   "tonieEditor": {
     "createTitle": "Eigenen Tonie erstellen",
@@ -239,6 +240,76 @@
       "success": "{{count}} Tonie(s) erfolgreich erstellt",
       "failed": "{{count}} Datei(en) konnten nicht verarbeitet werden",
       "partialSuccess": "{{success}} von {{total}} Tonies erstellt"
+    }
+  },
+  "setupWizard": {
+    "title": "TeddyCloud Custom Tag Helper",
+    "stepOf": "Schritt {current} von {total}",
+    "back": "Zurück",
+    "next": "Weiter",
+    "completeSetup": "Einrichtung abschließen",
+    "saving": "Speichere...",
+    "language": {
+      "title": "Sprache wählen",
+      "description": "Wählen Sie Ihre bevorzugte Sprache für diese Anwendung.",
+      "detected": "Erkannt vom Browser: {language}"
+    },
+    "dataAccess": {
+      "title": "Datenzugriff erkennen",
+      "detecting": "Erkenne Datenzugriffsmethoden...",
+      "volumeDetected": "Volume-Mount erkannt",
+      "volumeDescription": "TeddyCloud-Daten sind über Volume-Mount zugänglich",
+      "volumePath": "Volume-Pfad",
+      "tafFilesFound": "TAF-Dateien gefunden",
+      "toniesFound": "Tonies gefunden",
+      "imageDirectories": "Bildverzeichnisse",
+      "noVolumeDetected": "Kein Volume erkannt",
+      "noVolumeDescription": "Kein TeddyCloud Volume-Mount gefunden. Bitte mounten Sie Ihr TeddyCloud-Datenverzeichnis unter /data bevor Sie fortfahren.",
+      "detectionFailed": "Erkennung des Datenzugriffs fehlgeschlagen"
+    },
+    "connection": {
+      "title": "TeddyCloud Verbindung",
+      "urlLabel": "TeddyCloud URL",
+      "urlPlaceholder": "http://docker",
+      "urlHelp": "Geben Sie die URL ein, unter der TeddyCloud läuft (ohne /web Suffix)",
+      "testConnection": "Verbindung testen",
+      "testing": "Teste...",
+      "success": "Verbindung erfolgreich!",
+      "failed": "Verbindung fehlgeschlagen",
+      "boxesFound": "{count} Toniebox gefunden",
+      "boxesFoundPlural": "{count} Tonieboxen gefunden"
+    },
+    "imageStorage": {
+      "title": "Bildspeicherung",
+      "physicalPathLabel": "Physischer Bildpfad (Dateisystem)",
+      "physicalPathHelp": "Wo Cover-Bilder auf der Festplatte gespeichert werden",
+      "jsonPathLabel": "JSON Bildpfad (TeddyCloud)",
+      "jsonPathHelp": "Pfad für tonies.custom.json (normalerweise ohne /data Präfix)",
+      "detectedPaths": "Erkannte Pfade:"
+    },
+    "boxSelection": {
+      "title": "Toniebox Auswahl",
+      "multipleDetected": "Mehrere Tonieboxen erkannt. Wählen Sie Ihre primäre Box:",
+      "oneDetected": "Eine Toniebox erkannt:",
+      "changeLater": "Sie können dies später in den Einstellungen ändern (optional)",
+      "noBoxes": "Keine Tonieboxen erkannt. Sie können diesen Schritt überspringen und später konfigurieren."
+    },
+    "preferences": {
+      "title": "Einstellungen",
+      "uiLanguage": "UI Sprache",
+      "audioLanguage": "Standard Audio-Sprache",
+      "autoParseTaf": "TAF-Dateien automatisch analysieren",
+      "autoParseTafDescription": "Metadaten automatisch beim Auswählen von TAF-Dateien extrahieren",
+      "summary": "Konfigurationsübersicht",
+      "teddycloud": "TeddyCloud",
+      "images": "Bilder",
+      "selectedBox": "Ausgewählte Box",
+      "autoParseTafEnabled": "Aktiviert",
+      "autoParseTafDisabled": "Deaktiviert"
+    },
+    "languages": {
+      "en": "English",
+      "de": "Deutsch"
     }
   }
 }
