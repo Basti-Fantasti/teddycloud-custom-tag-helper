@@ -177,6 +177,12 @@ async def update_config(config_data: dict):
         if "app" in config_data:
             config.setdefault("app", {}).update(config_data["app"])
 
+        # Migrate existing configs: add setup_completed flag if missing
+        # This prevents the setup wizard from showing on container restarts
+        if "setup_completed" not in config:
+            config["setup_completed"] = True
+            logger.info("Added setup_completed flag to existing configuration")
+
         # Write updated config
         with open(config_file, 'w') as f:
             yaml.dump(config, f, default_flow_style=False, allow_unicode=True)

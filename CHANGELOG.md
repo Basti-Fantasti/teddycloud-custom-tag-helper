@@ -107,6 +107,22 @@ Added batch processing translations in both English and German:
 - **Modified**: `frontend/src/locales/en.json` - English translations
 - **Modified**: `frontend/src/pages/Dashboard.jsx` - Wizard integration
 
+### Fixed - Setup Dialog Shows Incorrectly on Container Updates
+
+Fixed a bug where the initial setup dialog would appear when updating to a newer container version, even when the app was already configured.
+
+#### Root Cause
+The first-run detection checked TeddyCloud connectivity when using the default URL (`http://docker`). If TeddyCloud wasn't ready yet during container startup (race condition), the connection test would fail and incorrectly trigger the setup wizard.
+
+#### Solution
+- Added `setup_completed: true` flag to config.yaml when setup wizard completes
+- Modified `check_setup_status()` to check this flag first, skipping connectivity test if present
+- Added migration in `update_config()` to add the flag to existing configurations
+
+#### Files Changed
+- **Modified**: `backend/app/api/setup.py` - Check `setup_completed` flag before connectivity test
+- **Modified**: `backend/app/main.py` - Add migration for existing configs
+
 ---
 
 ## [2.2.4] - 2025-12-26

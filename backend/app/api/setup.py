@@ -65,7 +65,7 @@ class SetupConfiguration(BaseModel):
 async def check_setup_status(settings: Settings = Depends(get_settings)):
     """
     Check if initial setup is required
-    
+
     Returns:
         SetupStatus with setup_required flag
     """
@@ -78,7 +78,19 @@ async def check_setup_status(settings: Settings = Depends(get_settings)):
                 setup_required=True,
                 reason="Configuration file not found"
             )
-        
+
+        # Check for setup_completed flag in config
+        # This is the authoritative indicator that setup was finished
+        try:
+            with open(config_file, 'r') as f:
+                config_data = yaml.safe_load(f) or {}
+                if config_data.get("setup_completed") is True:
+                    # Setup was explicitly completed, trust the config
+                    return SetupStatus(setup_required=False)
+        except Exception as e:
+            logger.warning(f"Could not read config.yaml: {e}")
+
+        # No setup_completed flag - this could be a fresh install or old config
         # Check if TeddyCloud URL is still default
         if settings.teddycloud.url == "http://docker":
             # Check if we can actually connect
@@ -96,10 +108,10 @@ async def check_setup_status(settings: Settings = Depends(get_settings)):
                     setup_required=True,
                     reason="Cannot connect to TeddyCloud"
                 )
-        
+
         # Setup completed
         return SetupStatus(setup_required=False)
-        
+
     except Exception as e:
         logger.error(f"Error checking setup status: {e}")
         return SetupStatus(
@@ -226,6 +238,9 @@ async def save_configuration(config: SetupConfiguration):
     try:
         # Build config structure
         config_data = {
+            # Mark setup as completed - this prevents the setup wizard from
+            # showing on container restarts when TeddyCloud isn't available yet
+            "setup_completed": True,
             "teddycloud": {
                 "url": config.teddycloud_url,
                 "api_base": "/api",
