@@ -1,6 +1,6 @@
 # Versioning
 
-## Current Version: 2.2.4
+## Current Version: 2.3.0
 
 ## How to Update the Version
 

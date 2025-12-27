@@ -6,6 +6,109 @@ This project has been prepared for public release on GitHub/Forgejo. All persona
 
 ---
 
+## [2.3.0] - 2025-12-27
+
+### Added - Batch TAF Processing Feature
+
+New feature to efficiently process multiple unlinked TAF files at once, automatically matching against the official Tonies database and searching metadata sources for unmatched files.
+
+#### User Flow
+1. Select multiple unlinked TAF files in TAF Library (checkboxes)
+2. Click "Batch Process" to open the wizard
+3. Files are auto-matched against official tonies.json (6207 entries)
+4. Review matches - exact matches preselected, multiple candidates show dropdown
+5. Unmatched files search MusicBrainz/iTunes for covers
+6. Confirm selections and create all tonie entries at once
+
+#### Backend Components
+
+**TonieMatchingService** (`backend/app/services/tonie_matching_service.py`)
+- Loads and caches official tonies.json from TeddyCloud API
+- Text normalization (lowercase, remove articles Die/Der/Das, handle umlauts)
+- Fuzzy matching using `rapidfuzz` library
+- Returns ranked candidates with confidence scores (0.0-1.0)
+- Auto-select threshold: >= 0.95 confidence
+
+**Batch API Endpoints** (`backend/app/api/batch.py`)
+- `POST /api/batch/analyze` - Match TAF files against tonies.json
+- `POST /api/batch/search-metadata` - Search MusicBrainz/iTunes for unmatched
+- `POST /api/batch/process` - Create tonie entries from selections
+
+**BatchProcessingService** (`backend/app/services/batch_processing_service.py`)
+- Orchestrates analysis, metadata search, and processing
+- Downloads covers from official CDN URLs
+- Atomic writes to tonies.custom.json
+- Triggers TeddyCloud reload after processing
+
+#### Frontend Components
+
+**Selection State** (`frontend/src/context/TAFLibraryContext.jsx`)
+- `selectedPaths: Set<string>` - Selected file paths
+- `toggleSelection(path)` - Toggle single selection
+- `selectAllUnlinked()` - Select all unlinked files
+- `clearSelection()` - Clear all selections
+- `batchWizardOpen` - Wizard visibility state
+
+**BatchSelectionToolbar** (`frontend/src/components/BatchSelectionToolbar.jsx`)
+- Shows selected count
+- "Select All Unlinked" button
+- "Batch Process" button
+- "Clear Selection" button
+
+**BatchProcessingWizard** (`frontend/src/components/BatchProcessingWizard.jsx`)
+- Multi-step wizard with progress indicators
+- Step 1: Analyzing - Loading spinner while matching
+- Step 2: Review Matches - List with dropdowns for multiple matches
+- Step 3: Confirm - Preview all selections before processing
+- Step 4: Processing/Complete - Progress and results summary
+
+**TAF Library Updates** (`frontend/src/components/TAFLibrary.jsx`)
+- Added checkbox column for unlinked files
+- Integrated BatchSelectionToolbar
+
+#### Security Updates
+
+**SSRF Whitelist** (`backend/app/services/metadata_search.py`)
+- Added official Tonies CDN domains:
+  - `cdn.tonies.de`
+  - `278163f382d2bab4b036-4f5ec62496a160f3570d3b6e48fc4516.ssl.cf3.rackcdn.com`
+  - `08ee523e746768fd7148-f76a52ba8f0c340564df978383fc4de2.ssl.cf3.rackcdn.com`
+  - `images.cdn.europe-west1.gcp.commercetools.com`
+  - `cdn.shopify.com`
+  - `s3.eu-central-1.amazonaws.com`
+
+#### Dependencies
+
+**Backend** (`backend/requirements.txt`)
+- Added `rapidfuzz>=3.0.0` for fast fuzzy string matching
+
+#### Translations
+
+Added batch processing translations in both English and German:
+- Selection toolbar strings
+- Wizard step labels and descriptions
+- Match status labels (auto-matched, needs review, no match)
+- Processing results messages
+
+#### Files Changed
+- **Created**: `backend/app/api/batch.py`
+- **Created**: `backend/app/services/batch_processing_service.py`
+- **Created**: `backend/app/services/tonie_matching_service.py`
+- **Created**: `frontend/src/components/BatchProcessingWizard.jsx`
+- **Created**: `frontend/src/components/BatchSelectionToolbar.jsx`
+- **Modified**: `backend/app/main.py` - Register batch router
+- **Modified**: `backend/app/models/schemas.py` - Added batch-related models
+- **Modified**: `backend/app/services/metadata_search.py` - SSRF whitelist
+- **Modified**: `backend/requirements.txt` - Added rapidfuzz
+- **Modified**: `frontend/src/api/client.js` - Batch API client
+- **Modified**: `frontend/src/components/TAFLibrary.jsx` - Checkboxes
+- **Modified**: `frontend/src/context/TAFLibraryContext.jsx` - Selection state
+- **Modified**: `frontend/src/locales/de.json` - German translations
+- **Modified**: `frontend/src/locales/en.json` - English translations
+- **Modified**: `frontend/src/pages/Dashboard.jsx` - Wizard integration
+
+---
+
 ## [2.2.4] - 2025-12-26
 
 ### Fixed - TAF Statistics Showing Wrong Total Count When Filtering
