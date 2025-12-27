@@ -111,7 +111,8 @@
     "discard": "Verwerfen",
     "saveAndRestart": "Speichern & Neustarten",
     "saving": "Speichere...",
-    "envVarSet": "Über Umgebungsvariable gesetzt ({var})"
+    "envVarSet": "Über Umgebungsvariable gesetzt ({var})",
+    "envVarInfo": "Umgebungsvariable {var} ist gesetzt, aber config.yaml hat Priorität. Änderungen werden in config.yaml gespeichert."
   },
   "tonieEditor": {
     "createTitle": "Eigenen Tonie erstellen",

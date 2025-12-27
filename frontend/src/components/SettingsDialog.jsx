@@ -9,6 +9,7 @@ export default function SettingsDialog({ isOpen, onClose, onConfigChange }) {
     app: { auto_parse_taf: true, default_language: 'de-de', selected_box: null }
   });
   const [initialConfig, setInitialConfig] = useState(null);
+  const [envSources, setEnvSources] = useState([]);  // Keys set via environment variables
   const [testResults, setTestResults] = useState(null);
   const [testing, setTesting] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -16,6 +17,9 @@ export default function SettingsDialog({ isOpen, onClose, onConfigChange }) {
   const [error, setError] = useState(null);
   const [boxes, setBoxes] = useState([]);
   const [loadingBoxes, setLoadingBoxes] = useState(false);
+
+  // Helper to check if a config key is set via environment variable
+  const isEnvSourced = (key) => envSources.includes(key);
 
   useEffect(() => {
     if (isOpen) {
@@ -30,6 +34,10 @@ export default function SettingsDialog({ isOpen, onClose, onConfigChange }) {
     try {
       const response = await fetch(`${API_URL}/api/config`);
       const data = await response.json();
+      // Extract env sources and remove from config object
+      const sources = data._env_sources || [];
+      delete data._env_sources;
+      setEnvSources(sources);
       setConfig(data);
       setInitialConfig(JSON.parse(JSON.stringify(data))); // Deep copy for comparison
       setError(null);
@@ -165,14 +173,24 @@ export default function SettingsDialog({ isOpen, onClose, onConfigChange }) {
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   {t('settings.teddycloud.serverUrl')}
+                  {isEnvSourced('teddycloud.url') && <EnvBadge />}
                 </label>
                 <input
                   type="text"
                   value={config.teddycloud.url}
                   onChange={(e) => setConfig({ ...config, teddycloud: { ...config.teddycloud, url: e.target.value } })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors ${
+                    isEnvSourced('teddycloud.url')
+                      ? 'border-amber-300 dark:border-amber-600 bg-amber-50 dark:bg-amber-900/20 text-gray-900 dark:text-white'
+                      : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white'
+                  }`}
                   placeholder="http://docker"
                 />
+                {isEnvSourced('teddycloud.url') && (
+                  <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                    {t('settings.envVarInfo', { var: 'TEDDYCLOUD_URL' })}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -293,6 +311,14 @@ export default function SettingsDialog({ isOpen, onClose, onConfigChange }) {
         </div>
       </div>
     </div>
+  );
+}
+
+function EnvBadge() {
+  return (
+    <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+      ENV
+    </span>
   );
 }
 

@@ -144,7 +144,9 @@ async def update_config(config_data: dict):
         Success status
 
     Note:
-        Values set via environment variables are preserved and not overwritten.
+        Config.yaml values take priority over environment variables.
+        Saving here will persist the new value in config.yaml, which will
+        override any environment variable setting on next reload.
     """
     import yaml
     from pathlib import Path
@@ -152,11 +154,12 @@ async def update_config(config_data: dict):
 
     try:
         config_file = Path("/config/config.yaml")
-        env_sources = get_env_sourced_keys()
 
         # Read current config
         with open(config_file) as f:
             config = yaml.safe_load(f) or {}
+
+        logger.info(f"Updating config - received: {config_data}")
 
         # Legacy cleanup - migrate old config structure to new simplified one (pre-v1.1)
         if "volumes" in config:
@@ -176,24 +179,19 @@ async def update_config(config_data: dict):
             del config["smb"]
             logger.info("Removed deprecated SMB section from config during save")
 
-        # Update config with new values, but skip env-sourced values
+        # Update config with new values
+        # Note: We no longer skip env-sourced values since config.yaml now takes priority
         if "teddycloud" in config_data:
             config.setdefault("teddycloud", {})
             for key, value in config_data["teddycloud"].items():
-                env_key = f"teddycloud.{key}"
-                if env_key in env_sources:
-                    logger.debug(f"Skipping {env_key} - set via environment variable")
-                else:
-                    config["teddycloud"][key] = value
+                config["teddycloud"][key] = value
+                logger.info(f"Setting teddycloud.{key} = {value}")
 
         if "app" in config_data:
             config.setdefault("app", {})
             for key, value in config_data["app"].items():
-                env_key = f"app.{key}"
-                if env_key in env_sources:
-                    logger.debug(f"Skipping {env_key} - set via environment variable")
-                else:
-                    config["app"][key] = value
+                config["app"][key] = value
+                logger.info(f"Setting app.{key} = {value}")
 
         # Migrate existing configs: add setup_completed flag if missing
         # This prevents the setup wizard from showing on container restarts

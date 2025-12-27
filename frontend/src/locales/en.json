@@ -111,7 +111,8 @@
     "discard": "Discard",
     "saveAndRestart": "Save & Restart",
     "saving": "Saving...",
-    "envVarSet": "Set via environment variable ({var})"
+    "envVarSet": "Set via environment variable ({var})",
+    "envVarInfo": "Environment variable {var} is set, but config.yaml takes priority. Changes here will be saved to config.yaml."
   },
   "tonieEditor": {
     "createTitle": "Create Custom Tonie",
