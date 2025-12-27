@@ -151,6 +151,33 @@ Fixed multiple issues with configuration loading and the setup wizard not using 
 
 ---
 
+### Fixed - Unicode Encoding Issues with German Filenames
+
+Fixed encoding issues causing TAF files with special characters (German umlauts like ü, ö, ä) to appear as orphaned and trigger 500 errors.
+
+#### Symptoms
+- TAF files with names like `Das Sams Am Samstag kam das Sams zurück.taf` showed as "orphaned" despite having correct SHA1 checksums
+- Filtering for orphaned files caused 500 Internal Server Error
+- Error logs showed: `'utf-8' codec can't decode byte 0xfc` and `surrogates not allowed`
+
+#### Root Cause
+TeddyCloud API returns filenames with non-UTF-8 encoding (Latin-1) for special characters. When Python tried to decode as UTF-8, it failed, causing:
+1. TAF header fetch to return empty results
+2. No audio_id or hash available for linking
+3. Surrogate characters in response causing JSON serialization errors
+
+#### Solution
+- **TeddyCloud Client**: Added multi-encoding fallback (UTF-8 → Latin-1 → CP1252) and string sanitization
+- **Volume Scanner**: Added path string sanitization for filesystem-sourced filenames
+- **TAF Library**: Added diagnostic logging to track linking statistics
+
+#### Files Changed
+- **Modified**: `backend/app/services/teddycloud_client.py` - Added `_sanitize_string()`, `_sanitize_dict()` helpers, multi-encoding fallback in `get_file_index()`
+- **Modified**: `backend/app/services/volume_scanner.py` - Added `_sanitize_path_string()` for filesystem paths
+- **Modified**: `backend/app/api/taf_library.py` - Added debug logging for linking diagnostics
+
+---
+
 ## [2.2.4] - 2025-12-26
 
 ### Fixed - TAF Statistics Showing Wrong Total Count When Filtering

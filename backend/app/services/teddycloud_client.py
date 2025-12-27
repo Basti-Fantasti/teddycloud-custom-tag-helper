@@ -2,6 +2,7 @@
 HTTP client for TeddyCloud API
 """
 
+import json
 import logging
 from typing import Dict, Any, Optional, List
 
@@ -111,7 +112,6 @@ class TeddyCloudClient:
             True if successful
         """
         try:
-            import json
             import tempfile
             import os
             from pathlib import Path
@@ -167,6 +167,43 @@ class TeddyCloudClient:
             logger.error(f"Failed to save tonies.custom.json: {e}")
             return False
 
+    def _sanitize_string(self, s: str) -> str:
+        """
+        Sanitize a string to ensure it's valid UTF-8.
+        Handles surrogate characters and invalid sequences.
+        """
+        if not isinstance(s, str):
+            return s
+        # Encode to UTF-8 with surrogateescape, then decode back
+        # This replaces any surrogate characters with the replacement character
+        try:
+            return s.encode('utf-8', errors='surrogatepass').decode('utf-8', errors='replace')
+        except (UnicodeEncodeError, UnicodeDecodeError):
+            # Last resort: replace all non-ASCII with ?
+            return ''.join(c if ord(c) < 128 else '?' for c in s)
+
+    def _sanitize_dict(self, d: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Recursively sanitize all strings in a dictionary.
+        """
+        result = {}
+        for key, value in d.items():
+            sanitized_key = self._sanitize_string(key) if isinstance(key, str) else key
+            if isinstance(value, dict):
+                result[sanitized_key] = self._sanitize_dict(value)
+            elif isinstance(value, list):
+                result[sanitized_key] = [
+                    self._sanitize_dict(item) if isinstance(item, dict)
+                    else self._sanitize_string(item) if isinstance(item, str)
+                    else item
+                    for item in value
+                ]
+            elif isinstance(value, str):
+                result[sanitized_key] = self._sanitize_string(value)
+            else:
+                result[sanitized_key] = value
+        return result
+
     async def get_file_index(self, path: str = "") -> Dict[str, Any]:
         """
         Get file index (library browser)
@@ -188,7 +225,33 @@ class TeddyCloudClient:
             response = await self.client.get(url, params=params)
             response.raise_for_status()
 
-            data = response.json()
+            # Handle potential encoding issues from TeddyCloud API
+            # Some filenames may contain non-UTF-8 characters (e.g., German umlauts in Latin-1)
+            try:
+                # First try normal JSON parsing
+                data = response.json()
+            except (UnicodeDecodeError, ValueError) as e:
+                logger.warning(f"JSON decode failed, trying alternative encoding: {e}")
+                # Try decoding response bytes with different encodings
+                content = response.content
+                decoded_text = None
+
+                # Try common encodings
+                for encoding in ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']:
+                    try:
+                        decoded_text = content.decode(encoding)
+                        break
+                    except (UnicodeDecodeError, LookupError):
+                        continue
+
+                if decoded_text is None:
+                    # Last resort: decode with replacement
+                    decoded_text = content.decode('utf-8', errors='replace')
+
+                data = json.loads(decoded_text)
+
+            # Sanitize all strings in the response to ensure valid UTF-8
+            data = self._sanitize_dict(data)
 
             # Ensure directories key exists (API may not always include it)
             if "directories" not in data:

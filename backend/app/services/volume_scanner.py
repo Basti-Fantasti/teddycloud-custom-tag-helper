@@ -26,6 +26,18 @@ class VolumeScanner:
         self.library_path = self.data_path / "library"
         self.content_path = self.data_path / "content" / "default"
 
+    def _sanitize_path_string(self, path_str: str) -> str:
+        """
+        Sanitize a path string to ensure it's valid UTF-8.
+        Handles surrogate characters from filesystem encoding issues.
+        """
+        try:
+            # Try to encode and decode to catch any encoding issues
+            return path_str.encode('utf-8', errors='surrogatepass').decode('utf-8', errors='replace')
+        except (UnicodeEncodeError, UnicodeDecodeError):
+            # Last resort: replace non-ASCII with ?
+            return ''.join(c if ord(c) < 128 else '?' for c in path_str)
+
     def scan_taf_files_recursive(self) -> List[Dict[str, Any]]:
         """
         Recursively scan for all TAF files in library
@@ -53,13 +65,17 @@ class VolumeScanner:
             # Get relative path from library root
             rel_path = taf_path.relative_to(self.library_path)
 
+            # Sanitize path strings to handle encoding issues (e.g., German umlauts)
+            rel_path_str = self._sanitize_path_string(str(rel_path))
+            filename_str = self._sanitize_path_string(taf_path.name)
+
             # Determine folder (everything except filename)
-            folder = str(rel_path.parent) if rel_path.parent != Path(".") else ""
+            folder = self._sanitize_path_string(str(rel_path.parent)) if rel_path.parent != Path(".") else ""
 
             taf_files.append({
-                "name": str(rel_path),  # Full path with folder prefix
-                "path": str(rel_path),
-                "filename": taf_path.name,
+                "name": rel_path_str,  # Full path with folder prefix
+                "path": rel_path_str,
+                "filename": filename_str,
                 "folder": folder,
                 "size": taf_path.stat().st_size if taf_path.exists() else 0,
                 # TAF metadata would need to be parsed from file - for now leave empty

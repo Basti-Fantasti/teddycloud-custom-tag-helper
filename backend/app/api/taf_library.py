@@ -159,6 +159,7 @@ async def get_taf_library(
 
         # Enrich TAF files with metadata (now O(1) lookups instead of API calls)
         enriched_taf_files = []
+        files_without_headers = 0
         for file_item in all_taf_files:
             file_path = file_item.get("name", "")
             if "/" in file_path:
@@ -172,8 +173,17 @@ async def get_taf_library(
             taf_header = dir_file_headers.get(directory, {}).get(filename, {})
             if taf_header:
                 file_item["tafHeader"] = taf_header
+            else:
+                files_without_headers += 1
+                # Debug: log files that couldn't get headers (encoding issues may cause mismatch)
+                if files_without_headers <= 5:  # Limit logging
+                    available_files = list(dir_file_headers.get(directory, {}).keys())[:3]
+                    logger.debug(f"No TAF header for '{filename}' in dir '{directory}'. Available: {available_files}...")
 
             enriched_taf_files.append(file_item)
+
+        if files_without_headers > 0:
+            logger.info(f"TAF enrichment: {files_without_headers}/{len(all_taf_files)} files missing headers (may be encoding mismatch)")
 
         all_taf_files = enriched_taf_files
 
@@ -181,6 +191,13 @@ async def get_taf_library(
 
         # Process TAF files
         taf_files: List[TAFFileWithTonie] = []
+
+        # Debug: Log lookup map sizes
+        logger.debug(f"Lookup maps: {len(tonie_by_audio_id)} audio_ids, {len(tonie_by_hash)} hashes, {len(tonie_by_model)} models")
+
+        linked_by_audio = 0
+        linked_by_hash = 0
+        not_linked = 0
 
         for file_item in all_taf_files:
             # Extract TAF metadata from TeddyCloud API response
@@ -194,8 +211,15 @@ async def get_taf_library(
 
             if audio_id and audio_id in tonie_by_audio_id:
                 linked_tonie = tonie_by_audio_id[audio_id]
+                linked_by_audio += 1
             elif hash_value and hash_value in tonie_by_hash:
                 linked_tonie = tonie_by_hash[hash_value]
+                linked_by_hash += 1
+            else:
+                not_linked += 1
+                # Debug: log why file is orphaned (first few only)
+                if not_linked <= 3:
+                    logger.debug(f"Orphaned: {file_item.get('name', '?')[:50]} - audio_id={audio_id}, hash={hash_value[:16] if hash_value else 'None'}...")
 
             # Get display name and paths
             # Volume scanner provides: name (full path), filename (just file), folder (parent dir)
@@ -250,7 +274,7 @@ async def get_taf_library(
         has_next = skip + limit < filtered_total
         has_prev = skip > 0
 
-        logger.info(f"TAF Library: {total_count} files, {linked_count} linked, {orphaned_count} orphaned, filter={filter} ({filtered_total} matching, page {page}, showing {len(paginated_files)})")
+        logger.info(f"TAF Library: {total_count} files, {linked_count} linked ({linked_by_audio} by audio_id, {linked_by_hash} by hash), {orphaned_count} orphaned, filter={filter}")
 
         return TAFLibraryResponse(
             taf_files=paginated_files,
