@@ -93,6 +93,8 @@ class Settings(BaseSettings):
     volumes: VolumesConfig = VolumesConfig()
     app: AppConfig = AppConfig()
     advanced: AdvancedConfig = AdvancedConfig()
+    # Flag to track if setup wizard has been completed
+    setup_completed: bool = False
 
     class Config:
         env_prefix = ""
