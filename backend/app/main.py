@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 
 from .config import get_settings, Settings
 from .models.schemas import StatusResponse
-from .api import tonies, library, uploads, taf_library, images, taf_metadata, rfid_tags, setup
+from .api import tonies, library, uploads, taf_library, images, taf_metadata, rfid_tags, setup, batch
 from .services.tonies_manager import ToniesManager
 from .services.teddycloud_client import TeddyCloudClient
 
@@ -52,6 +52,7 @@ app.include_router(images.router, prefix="/api")
 app.include_router(taf_metadata.router, prefix="/api")
 app.include_router(rfid_tags.router, prefix="/api")
 app.include_router(setup.router, prefix="/api")
+app.include_router(batch.router, prefix="/api")
 
 
 @app.get("/")

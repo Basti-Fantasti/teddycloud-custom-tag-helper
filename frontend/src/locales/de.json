@@ -199,5 +199,46 @@
   },
   "footer": {
     "version": "Version"
+  },
+  "batch": {
+    "selectFile": "Datei für Stapelverarbeitung auswählen",
+    "selectFilesToProcess": "Dateien zur Stapelverarbeitung auswählen",
+    "selectedCount": "{{count}} Datei(en) ausgewählt",
+    "selectAllUnlinked": "Alle auswählen ({{count}})",
+    "clearSelection": "Auswahl aufheben",
+    "processSelected": "Stapelverarbeitung",
+    "wizard": {
+      "title": "Stapelverarbeitung",
+      "analyzing": "Analysiere Dateien...",
+      "analyzingDescription": "Abgleich mit offizieller Tonies-Datenbank",
+      "reviewMatches": "Treffer überprüfen",
+      "reviewMatchesDescription": "Treffer überprüfen und bestätigen",
+      "searchingMetadata": "Suche Metadaten...",
+      "searchingMetadataDescription": "Suche Cover für nicht gefundene Dateien",
+      "confirm": "Bestätigen",
+      "confirmDescription": "Endgültige Auswahl vor Verarbeitung prüfen",
+      "processing": "Verarbeite...",
+      "processingDescription": "Erstelle Tonie-Einträge",
+      "complete": "Abgeschlossen",
+      "completeDescription": "Stapelverarbeitung beendet",
+      "autoMatched": "Automatisch zugeordnet (hohe Übereinstimmung)",
+      "needsReview": "Überprüfung erforderlich",
+      "noMatch": "Kein Treffer gefunden",
+      "selectMatch": "Treffer auswählen",
+      "keepSelection": "Auswahl beibehalten",
+      "skipFile": "Diese Datei überspringen",
+      "confidence": "Übereinstimmung",
+      "source": "Quelle",
+      "official": "Offiziell",
+      "metadata": "Metadaten-Suche",
+      "manual": "Manuell",
+      "back": "Zurück",
+      "next": "Weiter",
+      "process": "Verarbeiten",
+      "close": "Schließen",
+      "success": "{{count}} Tonie(s) erfolgreich erstellt",
+      "failed": "{{count}} Datei(en) konnten nicht verarbeitet werden",
+      "partialSuccess": "{{success}} von {{total}} Tonies erstellt"
+    }
   }
 }

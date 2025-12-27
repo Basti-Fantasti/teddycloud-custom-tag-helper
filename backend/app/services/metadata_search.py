@@ -38,6 +38,13 @@ ALLOWED_IMAGE_DOMAINS = {
     "a4.mzstatic.com",
     "a5.mzstatic.com",
     "mzstatic.com",
+    # Official Tonies CDN domains (for batch processing)
+    "cdn.tonies.de",
+    "278163f382d2bab4b036-4f5ec62496a160f3570d3b6e48fc4516.ssl.cf3.rackcdn.com",
+    "08ee523e746768fd7148-f76a52ba8f0c340564df978383fc4de2.ssl.cf3.rackcdn.com",
+    "images.cdn.europe-west1.gcp.commercetools.com",
+    "cdn.shopify.com",
+    "s3.eu-central-1.amazonaws.com",
 }
 
 
@@ -335,3 +342,19 @@ class MetadataSearchService:
         except Exception as e:
             logger.error(f"Failed to download image: {e}")
             return None
+
+
+# Standalone function for use by other modules
+async def download_image(url: str) -> Optional[bytes]:
+    """
+    Download an image from URL with SSRF protection.
+    Standalone function for use by batch processing service.
+
+    Args:
+        url: URL of the image to download
+
+    Returns:
+        Image bytes or None if download fails or URL is not trusted
+    """
+    service = MetadataSearchService()
+    return await service.download_image(url)

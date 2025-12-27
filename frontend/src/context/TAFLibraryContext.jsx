@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { tafLibraryAPI } from '../api/client';
 
 export const TAFLibraryContext = createContext();
@@ -21,6 +21,10 @@ export function TAFLibraryProvider({ children }) {
 
   // Filter state - applied server-side before pagination
   const [filter, setFilterState] = useState('all'); // 'all', 'linked', 'orphaned'
+
+  // Batch selection state
+  const [selectedPaths, setSelectedPaths] = useState(new Set());
+  const [batchWizardOpen, setBatchWizardOpen] = useState(false);
 
   const loadTafFiles = useCallback(async (force = false, newPage = page, newPageSize = pageSize, newFilter = filter) => {
     // Skip if already loaded and not forcing refresh (and same page/filter)
@@ -86,6 +90,41 @@ export function TAFLibraryProvider({ children }) {
     return loadTafFiles(true, 1, pageSize, newFilter);
   }, [loadTafFiles, pageSize]);
 
+  // Batch selection functions
+  const toggleSelection = useCallback((path) => {
+    setSelectedPaths(prev => {
+      const next = new Set(prev);
+      if (next.has(path)) {
+        next.delete(path);
+      } else {
+        next.add(path);
+      }
+      return next;
+    });
+  }, []);
+
+  const selectAllUnlinked = useCallback(() => {
+    const unlinkedPaths = tafFiles
+      .filter(taf => !taf.is_linked)
+      .map(taf => taf.path);
+    setSelectedPaths(new Set(unlinkedPaths));
+  }, [tafFiles]);
+
+  const clearSelection = useCallback(() => {
+    setSelectedPaths(new Set());
+  }, []);
+
+  const isSelected = useCallback((path) => {
+    return selectedPaths.has(path);
+  }, [selectedPaths]);
+
+  // Computed values for selection
+  const selectedCount = useMemo(() => selectedPaths.size, [selectedPaths]);
+  const unlinkedCount = useMemo(() =>
+    tafFiles.filter(taf => !taf.is_linked).length,
+    [tafFiles]
+  );
+
   return (
     <TAFLibraryContext.Provider value={{
       tafFiles,
@@ -105,6 +144,16 @@ export function TAFLibraryProvider({ children }) {
       // Filter
       filter,
       setFilter,
+      // Batch selection
+      selectedPaths,
+      selectedCount,
+      unlinkedCount,
+      toggleSelection,
+      selectAllUnlinked,
+      clearSelection,
+      isSelected,
+      batchWizardOpen,
+      setBatchWizardOpen,
     }}>
       {children}
     </TAFLibraryContext.Provider>

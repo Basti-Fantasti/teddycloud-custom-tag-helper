@@ -2,7 +2,7 @@
 Data models for Custom Tag Helper
 """
 
-from typing import List, Optional, Generic, TypeVar
+from typing import List, Optional, Generic, TypeVar, Literal, Dict
 from pydantic import BaseModel, Field
 
 T = TypeVar('T')
@@ -173,3 +173,115 @@ class TAFLibraryResponse(BaseModel):
     # Error handling - allows frontend to distinguish between empty data and error
     error: Optional[str] = Field(default=None, description="Error message if request failed")
     success: bool = Field(default=True, description="Whether the request succeeded")
+
+
+# ============= Batch Processing Schemas =============
+
+class MatchCandidateModel(BaseModel):
+    """A potential match from tonies.json"""
+    tonie_index: int = Field(description="Index in the tonies.json list")
+    series: str = Field(description="Series name from tonies.json")
+    episodes: Optional[str] = Field(default=None, description="Episode description")
+    audio_id: List[str] = Field(default_factory=list, description="Audio IDs from tonies.json")
+    hash: List[str] = Field(default_factory=list, description="Hashes from tonies.json")
+    pic: str = Field(default="", description="Cover image URL (CDN or local path)")
+    model: str = Field(default="", description="RFID model number")
+    language: str = Field(default="de-de", description="Language code")
+    confidence: float = Field(ge=0.0, le=1.0, description="Match confidence (0.0 to 1.0)")
+    match_type: Literal["exact", "fuzzy_series", "fuzzy_episode", "partial"] = Field(
+        description="Type of match found"
+    )
+
+
+class TAFMatchResultModel(BaseModel):
+    """Match results for a single TAF file"""
+    taf_path: str = Field(description="Path to the TAF file")
+    taf_name: str = Field(default="", description="TAF filename without path")
+    audio_id: Optional[int] = Field(default=None, description="Audio ID from TAF header")
+    hash: Optional[str] = Field(default=None, description="SHA1 hash from TAF header")
+    parsed_series: Optional[str] = Field(default=None, description="Series extracted from filename")
+    parsed_episode: Optional[str] = Field(default=None, description="Episode extracted from filename")
+    candidates: List[MatchCandidateModel] = Field(default_factory=list, description="Match candidates")
+    best_match: Optional[MatchCandidateModel] = Field(default=None, description="Best match if any")
+    auto_selected: bool = Field(default=False, description="True if confidence >= auto-select threshold")
+
+
+class BatchAnalyzeRequest(BaseModel):
+    """Request to analyze multiple TAF files for batch processing"""
+    taf_paths: List[str] = Field(description="Paths to TAF files (relative to library root)")
+
+
+class BatchAnalyzeResponse(BaseModel):
+    """Response from batch analysis"""
+    results: List[TAFMatchResultModel] = Field(description="Match results per file")
+    total: int = Field(description="Total number of files analyzed")
+    auto_matched: int = Field(description="Number of files with auto-selected matches")
+    needs_review: int = Field(description="Number of files with multiple candidates needing review")
+    unmatched: int = Field(description="Number of files with no matches found")
+
+
+class MetadataSearchItem(BaseModel):
+    """Item for metadata search request"""
+    taf_path: str = Field(description="Path to the TAF file")
+    series: Optional[str] = Field(default=None, description="Series name to search")
+    episode: Optional[str] = Field(default=None, description="Episode name to search")
+
+
+class MetadataSearchRequest(BaseModel):
+    """Request to search metadata for unmatched TAF files"""
+    items: List[MetadataSearchItem] = Field(description="Items to search metadata for")
+
+
+class MetadataSearchResultItem(BaseModel):
+    """Metadata search result for a single file"""
+    taf_path: str = Field(description="Path to the TAF file")
+    covers: List[Dict] = Field(default_factory=list, description="Cover image candidates")
+    best_cover: Optional[Dict] = Field(default=None, description="Best cover if any")
+    confidence: float = Field(default=0.0, description="Search confidence")
+
+
+class MetadataSearchResponse(BaseModel):
+    """Response from metadata search"""
+    results: Dict[str, MetadataSearchResultItem] = Field(
+        description="Results mapped by TAF path"
+    )
+    searched: int = Field(description="Number of files searched")
+    found: int = Field(description="Number of files with results")
+
+
+class BatchSelectionModel(BaseModel):
+    """User's selection for a single TAF file in batch processing"""
+    taf_path: str = Field(description="Path to the TAF file")
+    source: Literal["tonies_json", "musicbrainz", "itunes", "manual"] = Field(
+        description="Source of the selected metadata"
+    )
+    tonie_index: Optional[int] = Field(default=None, description="Index in tonies.json if from official DB")
+    series: str = Field(description="Series name to use")
+    episodes: str = Field(description="Episode description to use")
+    pic_url: str = Field(description="Cover image URL to download")
+    audio_id: Optional[str] = Field(default=None, description="Audio ID from TAF header")
+    hash: Optional[str] = Field(default=None, description="Hash from TAF header")
+    language: str = Field(default="de-de", description="Language code")
+
+
+class BatchProcessRequest(BaseModel):
+    """Request to process confirmed batch selections"""
+    selections: List[BatchSelectionModel] = Field(description="Confirmed selections to process")
+
+
+class ProcessedItemResult(BaseModel):
+    """Result for a single processed item"""
+    taf_path: str = Field(description="Path to the TAF file")
+    success: bool = Field(description="Whether processing succeeded")
+    error: Optional[str] = Field(default=None, description="Error message if failed")
+    model_number: Optional[str] = Field(default=None, description="Assigned model number")
+    cover_path: Optional[str] = Field(default=None, description="Local cover image path")
+    tonie_entry: Optional[Dict] = Field(default=None, description="Created tonie entry")
+
+
+class BatchProcessResponse(BaseModel):
+    """Response from batch processing"""
+    total: int = Field(description="Total items processed")
+    successful: int = Field(description="Number of successful items")
+    failed: int = Field(description="Number of failed items")
+    items: List[ProcessedItemResult] = Field(description="Results per item")

@@ -8,6 +8,7 @@ import StatusBar from '../components/StatusBar';
 import SettingsDialog from '../components/SettingsDialog';
 import TagSetupDialog from '../components/TagSetupDialog';
 import TagStatusField from '../components/TagStatusField';
+import BatchProcessingWizard from '../components/BatchProcessingWizard';
 import { API_URL } from '../config/apiConfig';
 import { useTranslation } from '../hooks/useTranslation';
 import { useTAFLibrary } from '../hooks/useTAFLibrary';
@@ -16,7 +17,7 @@ const DEFAULT_PAGE_SIZE = 50;
 
 export default function Dashboard() {
   const { t } = useTranslation();
-  const { refresh: refreshTAFLibrary } = useTAFLibrary();
+  const { refresh: refreshTAFLibrary, selectedPaths, clearSelection, setBatchWizardOpen, batchWizardOpen } = useTAFLibrary();
   const [tonies, setTonies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -224,6 +225,18 @@ export default function Dashboard() {
     }
   };
 
+  const handleBatchProcess = () => {
+    if (selectedPaths.size === 0) return;
+    setBatchWizardOpen(true);
+  };
+
+  const handleBatchComplete = async () => {
+    setBatchWizardOpen(false);
+    clearSelection();
+    await loadTonies();
+    await refreshTAFLibrary();
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       {/* Header */}
@@ -340,6 +353,15 @@ export default function Dashboard() {
         onSuccess={handleTagSetupSuccess}
       />
 
+      {/* Batch Processing Wizard */}
+      <BatchProcessingWizard
+        isOpen={batchWizardOpen}
+        onClose={() => setBatchWizardOpen(false)}
+        onComplete={handleBatchComplete}
+        selectedPaths={Array.from(selectedPaths)}
+        defaultLanguage={defaultLanguage}
+      />
+
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         {loading && (
@@ -355,7 +377,7 @@ export default function Dashboard() {
         )}
 
         {!loading && !error && !showEditor && viewMode === 'taf' && (
-          <TAFLibrary onCreateTonie={handleCreateFromTaf} />
+          <TAFLibrary onCreateTonie={handleCreateFromTaf} onBatchProcess={handleBatchProcess} />
         )}
 
         {!loading && !error && !showEditor && viewMode === 'tonies' && (

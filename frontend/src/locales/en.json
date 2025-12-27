@@ -199,5 +199,46 @@
   },
   "footer": {
     "version": "Version"
+  },
+  "batch": {
+    "selectFile": "Select file for batch processing",
+    "selectFilesToProcess": "Select files to batch process",
+    "selectedCount": "{{count}} file(s) selected",
+    "selectAllUnlinked": "Select all ({{count}})",
+    "clearSelection": "Clear",
+    "processSelected": "Batch Process",
+    "wizard": {
+      "title": "Batch Processing",
+      "analyzing": "Analyzing files...",
+      "analyzingDescription": "Matching against official Tonies database",
+      "reviewMatches": "Review Matches",
+      "reviewMatchesDescription": "Review and confirm match selections",
+      "searchingMetadata": "Searching metadata...",
+      "searchingMetadataDescription": "Finding covers for unmatched files",
+      "confirm": "Confirm",
+      "confirmDescription": "Review final selections before processing",
+      "processing": "Processing...",
+      "processingDescription": "Creating Tonie entries",
+      "complete": "Complete",
+      "completeDescription": "Batch processing finished",
+      "autoMatched": "Auto-matched (high confidence)",
+      "needsReview": "Needs review",
+      "noMatch": "No match found",
+      "selectMatch": "Select match",
+      "keepSelection": "Keep selection",
+      "skipFile": "Skip this file",
+      "confidence": "Confidence",
+      "source": "Source",
+      "official": "Official",
+      "metadata": "Metadata Search",
+      "manual": "Manual",
+      "back": "Back",
+      "next": "Next",
+      "process": "Process",
+      "close": "Close",
+      "success": "Successfully created {{count}} Tonie(s)",
+      "failed": "Failed to process {{count}} file(s)",
+      "partialSuccess": "Created {{success}} of {{total}} Tonies"
+    }
   }
 }

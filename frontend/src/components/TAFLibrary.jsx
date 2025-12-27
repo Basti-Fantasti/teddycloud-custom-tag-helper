@@ -2,8 +2,9 @@ import { API_URL } from '../config/apiConfig';
 import { useTAFLibrary } from '../hooks/useTAFLibrary';
 import { useTranslation } from '../hooks/useTranslation';
 import Pagination from './Pagination';
+import BatchSelectionToolbar from './BatchSelectionToolbar';
 
-export default function TAFLibrary({ onCreateTonie }) {
+export default function TAFLibrary({ onCreateTonie, onBatchProcess }) {
   const { t } = useTranslation();
   const {
     tafFiles,
@@ -20,6 +21,10 @@ export default function TAFLibrary({ onCreateTonie }) {
     changePageSize,
     filter,
     setFilter,
+    // Batch selection
+    toggleSelection,
+    isSelected,
+    selectedCount,
   } = useTAFLibrary();
 
   const formatFileSize = (bytes) => {
@@ -92,6 +97,9 @@ export default function TAFLibrary({ onCreateTonie }) {
         </div>
       </div>
 
+      {/* Batch Selection Toolbar */}
+      <BatchSelectionToolbar onBatchProcess={onBatchProcess} />
+
       {/* Filter Tabs */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow transition-colors">
         <div className="border-b border-gray-200 dark:border-gray-700">
@@ -140,6 +148,18 @@ export default function TAFLibrary({ onCreateTonie }) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:divide-x divide-gray-200 dark:divide-gray-700">
                 {/* Left Half: TAF File Info */}
                 <div className="px-4 py-3 flex items-start gap-3">
+                  {/* Checkbox for unlinked files */}
+                  {!file.is_linked && (
+                    <div className="flex-shrink-0 flex items-center h-8">
+                      <input
+                        type="checkbox"
+                        checked={isSelected(file.path)}
+                        onChange={() => toggleSelection(file.path)}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded cursor-pointer"
+                        aria-label={t('batch.selectFile')}
+                      />
+                    </div>
+                  )}
                   {/* Icon */}
                   <div className="flex-shrink-0">
                     {file.is_linked ? (
@@ -149,7 +169,7 @@ export default function TAFLibrary({ onCreateTonie }) {
                         </svg>
                       </div>
                     ) : (
-                      <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center">
+                      <div className="w-8 h-8 rounded bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                         <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>

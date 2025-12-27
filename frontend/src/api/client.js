@@ -112,4 +112,34 @@ export const setupAPI = {
   saveConfiguration: (config) => client.post('/setup/save', config),
 };
 
+// Batch Processing API - bulk TAF processing
+export const batchAPI = {
+  /**
+   * Analyze TAF files and match against tonies.json
+   * @param {string[]} tafPaths - Array of TAF file paths
+   * @returns {Promise} BatchAnalyzeResponse
+   */
+  analyze: (tafPaths) => client.post('/batch/analyze', { taf_paths: tafPaths }),
+
+  /**
+   * Search metadata for unmatched TAF files
+   * @param {Array<{taf_path: string, series: string, episode: string}>} items
+   * @returns {Promise} MetadataSearchResponse
+   */
+  searchMetadata: (items) => client.post('/batch/search-metadata', { items }),
+
+  /**
+   * Process confirmed selections and create tonie entries
+   * @param {Array} selections - Array of BatchSelectionModel objects
+   * @returns {Promise} BatchProcessResponse
+   */
+  process: (selections) => client.post('/batch/process', { selections }),
+
+  /**
+   * Get stats about the matching database
+   * @returns {Promise} Stats object
+   */
+  getStats: () => client.get('/batch/stats'),
+};
+
 export default client;
