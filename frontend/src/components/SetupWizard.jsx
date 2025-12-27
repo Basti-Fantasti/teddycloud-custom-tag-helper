@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext } from 'react';
-import { setupAPI } from '../api/client';
+import { setupAPI, systemAPI } from '../api/client';
+import { API_URL } from '../config/apiConfig';
 import { TranslationContext } from '../context/TranslationContext';
 
 const SetupWizard = ({ onComplete }) => {
@@ -11,9 +12,9 @@ const SetupWizard = ({ onComplete }) => {
   // Auto-detection results
   const [detection, setDetection] = useState(null);
 
-  // Configuration
+  // Configuration - will be populated from backend
   const [config, setConfig] = useState({
-    teddycloud_url: 'http://docker',
+    teddycloud_url: '',
     custom_img_path: '/data/library/own/pics',
     custom_img_json_path: '/library/own/pics',
     ui_language: language,
@@ -29,6 +30,11 @@ const SetupWizard = ({ onComplete }) => {
   // Total number of steps (0-5)
   const TOTAL_STEPS = 6;
 
+  // Load existing config on mount
+  useEffect(() => {
+    loadExistingConfig();
+  }, []);
+
   // Update config when language changes
   useEffect(() => {
     setConfig(prev => ({ ...prev, ui_language: language }));
@@ -38,6 +44,30 @@ const SetupWizard = ({ onComplete }) => {
   useEffect(() => {
     detectDataAccess();
   }, []);
+
+  const loadExistingConfig = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/config`);
+      const data = await response.json();
+      console.log('Loaded existing config:', data);
+
+      // Pre-populate with existing values if available
+      setConfig(prev => ({
+        ...prev,
+        teddycloud_url: data.teddycloud?.url || 'http://docker',
+        default_language: data.app?.default_language || 'de-de',
+        auto_parse_taf: data.app?.auto_parse_taf ?? true,
+        selected_box: data.app?.selected_box || null,
+      }));
+    } catch (err) {
+      console.error('Failed to load existing config:', err);
+      // Fall back to default
+      setConfig(prev => ({
+        ...prev,
+        teddycloud_url: 'http://docker',
+      }));
+    }
+  };
 
   const detectDataAccess = async () => {
     try {
