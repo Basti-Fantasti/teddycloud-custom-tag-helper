@@ -44,6 +44,8 @@ class RFIDTagsResponse(BaseModel):
     unconfigured_count: int
     unassigned_count: int
     assigned_count: int
+    # Active tag - the one currently placed on the Toniebox
+    active_tag_uid: Optional[str] = None
     # Pagination fields
     page: int = 1
     page_size: int = 50
@@ -387,32 +389,22 @@ async def get_box_rfid_tags(box_id: str, settings: Settings = Depends(get_settin
     import asyncio
     from collections import defaultdict
 
-    logger.info(f"[get_box_rfid_tags] Called with box_id: {box_id}")
-
     try:
         # Use TeddyCloud's getTagIndex API to get all tags for this box
         from ..services.teddycloud_client import TeddyCloudClient
         client = TeddyCloudClient(settings.teddycloud.url, settings.teddycloud.api_base)
-        logger.info(f"[get_box_rfid_tags] TeddyCloud URL: {settings.teddycloud.url}, API base: {settings.teddycloud.api_base}")
 
         # Get the last played RUID
         last_ruid = await client.get_last_ruid(box_id, str(settings.volumes.content_path))
-        logger.info(f"[get_box_rfid_tags] Last RUID for box {box_id}: {last_ruid}")
 
         # Get all tags
         tc_tags = await client.get_tag_index(box_id)
-        logger.info(f"[get_box_rfid_tags] TeddyCloud returned {len(tc_tags) if tc_tags else 0} tags for box {box_id}")
-        if tc_tags:
-            for i, tag in enumerate(tc_tags[:5]):  # Log first 5 tags
-                logger.info(f"[get_box_rfid_tags] Tag {i}: uid={tag.get('uid', 'N/A')}, source={tag.get('source', 'N/A')}")
 
         # Load our custom tonies to match against
         tonies_custom_data = await client.get_tonies_custom_json()
         tonies_official_data = await client.get_tonies_json()
-        logger.info(f"[get_box_rfid_tags] Loaded {len(tonies_custom_data)} custom tonies, {len(tonies_official_data)} official tonies")
 
         if not tc_tags:
-            logger.warning(f"[get_box_rfid_tags] No tags returned from TeddyCloud for box {box_id}")
             await client.close()
             return RFIDTagsResponse(
                 tags=[],
@@ -535,8 +527,6 @@ async def get_box_rfid_tags(box_id: str, settings: Settings = Depends(get_settin
             else:
                 status = "assigned"
 
-            logger.info(f"[get_box_rfid_tags] Processing tag {tag_ruid}: model={tag_model}, source={tag_source[:50] if tag_source else 'None'}, initial_status={status}")
-
             # Try to find the actual tonie from our tonies.custom.json
             # Method 1: Match by model number
             actual_tonie = tonie_by_model.get(tag_model)
@@ -544,8 +534,6 @@ async def get_box_rfid_tags(box_id: str, settings: Settings = Depends(get_settin
             # Method 2: If not found, try matching by source path
             if not actual_tonie and tag_source:
                 actual_tonie = tonie_by_source.get(tag_source)
-                if actual_tonie:
-                    logger.info(f"Matched tag {tc_tag.get('ruid')} to tonie by source: {tag_source}")
 
             # Build linked tonie info from actual tonie data (not TeddyCloud's potentially wrong info)
             linked_tonie = None
@@ -586,15 +574,10 @@ async def get_box_rfid_tags(box_id: str, settings: Settings = Depends(get_settin
 
         await client.close()
 
-        logger.info(f"[get_box_rfid_tags] Total processed tags: {len(all_tags)}")
-        for tag in all_tags:
-            logger.info(f"[get_box_rfid_tags] Processed: uid={tag.uid}, status={tag.status}, model={tag.model}")
-
         # Filter tags to return:
         # 1. The last played tag (if exists)
         # 2. Any unconfigured or unassigned tags (for setup)
         tags = []
-        logger.info(f"[get_box_rfid_tags] Filtering tags. last_ruid={last_ruid}")
 
         if last_ruid:
             last_ruid_upper = last_ruid.upper()
@@ -602,17 +585,12 @@ async def get_box_rfid_tags(box_id: str, settings: Settings = Depends(get_settin
             last_played_tag = next((t for t in all_tags if t.uid == last_ruid_upper), None)
             if last_played_tag:
                 tags.append(last_played_tag)
-                logger.info(f"[get_box_rfid_tags] Added last played tag: {last_ruid_upper}, status={last_played_tag.status}")
-            else:
-                logger.warning(f"[get_box_rfid_tags] Last played tag {last_ruid_upper} NOT FOUND in all_tags!")
 
         # Add any unconfigured or unassigned tags (for setup)
         setup_tags = [t for t in all_tags if t.status in ('unconfigured', 'unassigned')]
-        logger.info(f"[get_box_rfid_tags] Found {len(setup_tags)} unconfigured/unassigned tags")
         for tag in setup_tags:
             if tag not in tags:  # Don't duplicate if it's also the last played
                 tags.append(tag)
-                logger.info(f"[get_box_rfid_tags] Added tag for setup: {tag.uid} (status: {tag.status})")
 
         # Calculate statistics
         total = len(tags)
@@ -620,14 +598,16 @@ async def get_box_rfid_tags(box_id: str, settings: Settings = Depends(get_settin
         unassigned = sum(1 for t in tags if t.status == "unassigned")
         assigned = sum(1 for t in tags if t.status == "assigned")
 
-        logger.info(f"Returning {total} RFID tags for box {box_id}")
+        # Get active tag UID (uppercase for consistency)
+        active_tag_uid = last_ruid.upper() if last_ruid else None
 
         return RFIDTagsResponse(
             tags=tags,
             total_count=total,
             unconfigured_count=unconfigured,
             unassigned_count=unassigned,
-            assigned_count=assigned
+            assigned_count=assigned,
+            active_tag_uid=active_tag_uid
         )
 
     except Exception as e:

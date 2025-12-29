@@ -39,6 +39,7 @@ export default function TonieEditor({ tonie, tafFile, defaultLanguage = 'en-us',
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [previewJson, setPreviewJson] = useState(null);
   const [availableRFIDTags, setAvailableRFIDTags] = useState([]);
+  const [activeTagUid, setActiveTagUid] = useState(null);
   const [loadingTags, setLoadingTags] = useState(false);
   const [showRFIDSelector, setShowRFIDSelector] = useState(false);
 
@@ -66,39 +67,27 @@ export default function TonieEditor({ tonie, tafFile, defaultLanguage = 'en-us',
 
   // Load available RFID tags for the selected Toniebox
   const loadAvailableRFIDTags = async () => {
-    console.log('[TonieEditor] loadAvailableRFIDTags called');
-    console.log('[TonieEditor] selectedBox:', selectedBox);
-
     // Use box-specific API if a box is selected, otherwise show no tags
     if (!selectedBox) {
-      console.log('[TonieEditor] No selectedBox, clearing tags');
       setAvailableRFIDTags([]);
+      setActiveTagUid(null);
       return;
     }
     setLoadingTags(true);
     try {
-      console.log('[TonieEditor] Calling rfidTagsAPI.getBoxTags with:', selectedBox);
       const { data } = await rfidTagsAPI.getBoxTags(selectedBox);
-      console.log('[TonieEditor] API response:', JSON.stringify(data, null, 2));
-      console.log('[TonieEditor] Total tags from API:', data.tags?.length || 0);
 
-      // Log each tag's status
-      (data.tags || []).forEach((tag, i) => {
-        console.log(`[TonieEditor] Tag ${i}: uid=${tag.uid}, status=${tag.status}, model=${tag.model}`);
-      });
+      // Store the active tag UID (the one currently on the box)
+      setActiveTagUid(data.active_tag_uid || null);
 
       // Filter to show only unconfigured and unassigned tags
       const availableTags = (data.tags || []).filter(
         tag => tag.status === 'unconfigured' || tag.status === 'unassigned',
       );
-      console.log('[TonieEditor] Filtered available tags (unconfigured/unassigned):', availableTags.length);
-      availableTags.forEach((tag, i) => {
-        console.log(`[TonieEditor] Available tag ${i}: uid=${tag.uid}, status=${tag.status}`);
-      });
 
       setAvailableRFIDTags(availableTags);
-    } catch (err) {
-      console.error('[TonieEditor] Error loading RFID tags:', err);
+    } catch (_err) {
+      // Silent fail - tags are optional
     } finally {
       setLoadingTags(false);
     }
@@ -415,12 +404,104 @@ export default function TonieEditor({ tonie, tafFile, defaultLanguage = 'en-us',
           </label>
 
           <div className="mt-1 space-y-2">
-            {/* Show detected tags if available */}
-            {!isEditMode && availableRFIDTags.length > 0 ? (
+            {/* Show the currently active tag prominently */}
+            {!isEditMode && activeTagUid && (() => {
+              const activeTag = availableRFIDTags.find(tag => tag.uid === activeTagUid);
+              const otherTags = availableRFIDTags.filter(tag => tag.uid !== activeTagUid);
+
+              return (
+                <div className="space-y-2">
+                  {/* Active tag - prominently displayed */}
+                  {activeTag && (
+                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700 rounded-md p-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span className="text-sm font-medium text-green-800 dark:text-green-200">
+                          {t('tonieEditor.tagDetectedOnBox')}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, model: activeTag.model || prev.model }));
+                        }}
+                        className="w-full flex items-center justify-between px-3 py-2 bg-white dark:bg-gray-700 border-2 border-green-400 dark:border-green-600 rounded hover:bg-green-50 dark:hover:bg-green-900/30 text-sm transition-colors"
+                      >
+                        <span className="font-mono text-gray-700 dark:text-gray-300">
+                          {activeTag.uid}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs px-2 py-1 rounded ${
+                            activeTag.status === 'unconfigured'
+                              ? 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200'
+                              : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'
+                          }`}>
+                            {activeTag.status === 'unconfigured' ? t('tonieEditor.tagStatus.unconfigured') : t('tonieEditor.tagStatus.unassigned')}
+                          </span>
+                          <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                            {t('tonieEditor.useThisTag')}
+                          </span>
+                        </div>
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Other available tags - collapsible */}
+                  {otherTags.length > 0 && (
+                    <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-md p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                          {otherTags.length} {t('tonieEditor.otherAvailableTags')}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setShowRFIDSelector(!showRFIDSelector)}
+                          className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline"
+                        >
+                          {showRFIDSelector ? t('tonieEditor.hide') : t('tonieEditor.show')}
+                        </button>
+                      </div>
+
+                      {showRFIDSelector && (
+                        <div className="mt-2 space-y-1">
+                          {otherTags.map((tag) => (
+                            <button
+                              key={tag.uid}
+                              type="button"
+                              onClick={() => {
+                                setFormData(prev => ({ ...prev, model: tag.model || prev.model }));
+                                setShowRFIDSelector(false);
+                              }}
+                              className="w-full flex items-center justify-between px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-600 text-sm transition-colors"
+                            >
+                              <span className="font-mono text-gray-700 dark:text-gray-300">
+                                {tag.uid}
+                              </span>
+                              <span className={`text-xs px-2 py-1 rounded ${
+                                tag.status === 'unconfigured'
+                                  ? 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200'
+                                  : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'
+                              }`}>
+                                {tag.status === 'unconfigured' ? t('tonieEditor.tagStatus.unconfigured') : t('tonieEditor.tagStatus.unassigned')}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* No active tag but other tags available */}
+            {!isEditMode && !activeTagUid && availableRFIDTags.length > 0 && (
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3">
                 <div className="flex items-center justify-between mb-2">
                   <div className="text-sm font-medium text-blue-900 dark:text-blue-200">
-                    {availableRFIDTags.length} available tag{availableRFIDTags.length !== 1 ? 's' : ''} detected
+                    {availableRFIDTags.length} {t('tonieEditor.availableTags')}
                   </div>
                   <button
                     type="button"
@@ -462,9 +543,15 @@ export default function TonieEditor({ tonie, tafFile, defaultLanguage = 'en-us',
                   {t('tonieEditor.placeCreativeTonie')}
                 </div>
               </div>
-            ) : loadingTags ? (
+            )}
+
+            {/* Loading state */}
+            {loadingTags && (
               <div className="text-sm text-gray-500 dark:text-gray-400">Loading available tags...</div>
-            ) : (
+            )}
+
+            {/* No tags found */}
+            {!isEditMode && !loadingTags && availableRFIDTags.length === 0 && (
               <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-3 text-sm text-yellow-800 dark:text-yellow-200">
                 {t('tonieEditor.noTagsFound')}
               </div>

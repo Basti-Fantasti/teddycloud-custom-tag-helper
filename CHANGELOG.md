@@ -6,7 +6,7 @@ This project has been prepared for public release on GitHub/Forgejo. All persona
 
 ---
 
-## [2.3.1] - 2025-12-29
+## [2.3.1] - 2025-12-29 / 2025-12-30
 
 ### Fixed - RFID Tag Detection Not Working with Multiple Tonieboxes
 
@@ -30,6 +30,35 @@ Fixed an issue where the Tonie Editor could not detect RFID tags when multiple T
 #### Files Changed
 - **Modified**: `frontend/src/pages/Dashboard.jsx` - Pass `selectedBox` prop to `TonieEditor`
 - **Modified**: `frontend/src/components/TonieEditor.jsx` - Accept `selectedBox` prop, use box-specific API
+
+---
+
+### Improved - Active RFID Tag Shown Prominently in Editor
+
+Improved the Tonie Editor UX to prominently display the currently placed tag on the Toniebox.
+
+#### Problem
+- When creating a custom tonie, all available RFID tags (19 in testing) were shown equally
+- User had to scroll through all tags to find the one currently on the box
+- No visual indication of which tag was currently active
+
+#### Solution
+- Added `active_tag_uid` field to backend `RFIDTagsResponse` to identify the currently placed tag
+- Backend now returns the active tag UID from TeddyCloud's `internal.last_ruid` API
+- Frontend displays the active tag in a green highlighted box at the top with "Tag detected on box" label
+- Other available tags are collapsed in a "X other available tags" section that can be expanded
+
+#### User Experience
+- Active tag is immediately visible with green highlight and checkmark icon
+- "Use this tag" button makes it clear this is the recommended action
+- Other tags are hidden but accessible if needed
+- Much faster workflow for the common case of linking the tag currently on the box
+
+#### Files Changed
+- **Modified**: `backend/app/api/rfid_tags.py` - Added `active_tag_uid` to response schema and endpoint
+- **Modified**: `frontend/src/components/TonieEditor.jsx` - New UI showing active tag prominently
+- **Modified**: `frontend/src/locales/en.json` - Added translation keys for new UI
+- **Modified**: `frontend/src/locales/de.json` - Added German translations
 
 ---
 
