@@ -7,7 +7,7 @@ import ConfirmationDialog from './ConfirmationDialog';
 import { useDropzone } from 'react-dropzone';
 import { useTranslation } from '../hooks/useTranslation';
 
-export default function TonieEditor({ tonie, tafFile, defaultLanguage = 'en-us', onSave, onCancel }) {
+export default function TonieEditor({ tonie, tafFile, defaultLanguage = 'en-us', selectedBox, onSave, onCancel }) {
   const { t } = useTranslation();
   const isEditMode = !!tonie;
 
@@ -49,13 +49,13 @@ export default function TonieEditor({ tonie, tafFile, defaultLanguage = 'en-us',
     }
   }, [tafFile]);
 
-  // Load available RFID tags when component mounts
+  // Load available RFID tags when component mounts or selectedBox changes
   useEffect(() => {
     if (!isEditMode) {
       loadAvailableRFIDTags();
       loadNextModelNumber();
     }
-  }, [isEditMode]);
+  }, [isEditMode, selectedBox]);
 
   // Load available covers when gallery is shown
   useEffect(() => {
@@ -64,11 +64,16 @@ export default function TonieEditor({ tonie, tafFile, defaultLanguage = 'en-us',
     }
   }, [showCoverGallery]);
 
-  // Load available RFID tags
+  // Load available RFID tags for the selected Toniebox
   const loadAvailableRFIDTags = async () => {
+    // Use box-specific API if a box is selected, otherwise show no tags
+    if (!selectedBox) {
+      setAvailableRFIDTags([]);
+      return;
+    }
     setLoadingTags(true);
     try {
-      const { data } = await rfidTagsAPI.getAll();
+      const { data } = await rfidTagsAPI.getBoxTags(selectedBox);
       // Filter to show only unconfigured and unassigned tags
       const availableTags = (data.tags || []).filter(
         tag => tag.status === 'unconfigured' || tag.status === 'unassigned',

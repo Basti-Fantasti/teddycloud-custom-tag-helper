@@ -382,6 +382,7 @@ export default function Dashboard() {
             tonie={editingTonie}
             tafFile={selectedTafFile}
             defaultLanguage={defaultLanguage}
+            selectedBox={selectedBox}
             onSave={handleSave}
             onCancel={handleCancel}
           />

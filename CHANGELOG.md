@@ -6,6 +6,33 @@ This project has been prepared for public release on GitHub/Forgejo. All persona
 
 ---
 
+## [2.3.1] - 2025-12-29
+
+### Fixed - RFID Tag Detection Not Working with Multiple Tonieboxes
+
+Fixed an issue where the Tonie Editor could not detect RFID tags when multiple Tonieboxes are connected to TeddyCloud.
+
+#### Symptoms
+- RFID input field always showed "No tonie found"
+- Tag placed on selected Toniebox was not detected
+- Tag was correctly recognized by TeddyCloud main application
+
+#### Root Cause
+- `TonieEditor` component called `rfidTagsAPI.getAll()` which returns tags from **all** Tonieboxes
+- `Dashboard` did not pass `selectedBox` prop to `TonieEditor`
+- Tags from all boxes were mixed together, making detection unreliable
+
+#### Solution
+- Pass `selectedBox` prop from `Dashboard` to `TonieEditor`
+- Changed `loadAvailableRFIDTags()` to use `rfidTagsAPI.getBoxTags(selectedBox)` instead of `getAll()`
+- Added `selectedBox` to useEffect dependency to refresh tags when box selection changes
+
+#### Files Changed
+- **Modified**: `frontend/src/pages/Dashboard.jsx` - Pass `selectedBox` prop to `TonieEditor`
+- **Modified**: `frontend/src/components/TonieEditor.jsx` - Accept `selectedBox` prop, use box-specific API
+
+---
+
 ## [2.3.0] - 2025-12-27
 
 ### Added - Setup Wizard Language Selection as First Step
