@@ -334,19 +334,25 @@ class TeddyCloudClient:
         """
         try:
             url = self._build_url(f"getTagIndex?overlay={box_id}")
+            logger.info(f"[get_tag_index] Calling TeddyCloud: {url}")
             response = await self.client.get(url)
+            logger.info(f"[get_tag_index] Response status: {response.status_code}")
 
             if response.status_code == 200:
                 data = response.json()
                 tags = data.get('tags', [])
-                logger.info(f"Got {len(tags)} tags for box {box_id} from TeddyCloud")
+                logger.info(f"[get_tag_index] Got {len(tags)} tags for box {box_id}")
+                if tags:
+                    # Log first few tags for debugging
+                    for i, tag in enumerate(tags[:3]):
+                        logger.info(f"[get_tag_index] Tag {i}: ruid={tag.get('ruid')}, tonieInfo={tag.get('tonieInfo', {})}")
                 return tags
             else:
-                logger.warning(f"Failed to get tag index for box {box_id}: {response.status_code}")
+                logger.warning(f"[get_tag_index] Failed for box {box_id}: status={response.status_code}, body={response.text[:200]}")
                 return []
 
         except Exception as e:
-            logger.error(f"Failed to get tag index for box {box_id}: {e}")
+            logger.error(f"[get_tag_index] Exception for box {box_id}: {e}")
             return []
 
     async def get_last_ruid(self, box_id: str, content_path: str = None) -> Optional[str]:
@@ -364,26 +370,34 @@ class TeddyCloudClient:
         Returns:
             Last played RUID string or None if not available
         """
+        logger.info(f"[get_last_ruid] Called with box_id={box_id}, content_path={content_path}")
         try:
             # Method 1: Try internal.last_ruid API
             # Previous testing showed this returns 200 OK without authentication
             try:
                 url = self._build_url(f"settings/get/internal.last_ruid?overlay={box_id}")
+                logger.info(f"[get_last_ruid] Calling TeddyCloud API: {url}")
                 response = await self.client.get(url, timeout=5)
+                logger.info(f"[get_last_ruid] Response status: {response.status_code}, body: {response.text[:100] if response.text else 'empty'}")
 
                 if response.status_code == 200:
                     ruid = response.text.strip().strip('"').lower()
+                    logger.info(f"[get_last_ruid] Parsed RUID: '{ruid}' (len={len(ruid) if ruid else 0})")
 
                     # Validate it's a proper RUID (16 hex chars)
                     if ruid and len(ruid) == 16 and all(c in '0123456789abcdef' for c in ruid):
                         # Skip placeholders
                         if not ruid.startswith('00000001') and ruid != '0000000000000000':
-                            logger.info(f"Found RUID from internal.last_ruid API: {ruid}")
+                            logger.info(f"[get_last_ruid] Valid RUID from API: {ruid}")
                             return ruid
+                        else:
+                            logger.info(f"[get_last_ruid] RUID is a placeholder, skipping: {ruid}")
+                    else:
+                        logger.info(f"[get_last_ruid] RUID validation failed: '{ruid}'")
 
-                logger.debug(f"internal.last_ruid returned invalid or empty: {response.status_code}")
+                logger.info(f"[get_last_ruid] API returned invalid/empty, trying filesystem fallback")
             except Exception as e:
-                logger.debug(f"internal.last_ruid API failed: {e}, trying filesystem")
+                logger.warning(f"[get_last_ruid] API failed: {e}, trying filesystem")
 
             # Method 2: Filesystem fallback
             from pathlib import Path

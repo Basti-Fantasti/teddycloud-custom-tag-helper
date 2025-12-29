@@ -66,21 +66,39 @@ export default function TonieEditor({ tonie, tafFile, defaultLanguage = 'en-us',
 
   // Load available RFID tags for the selected Toniebox
   const loadAvailableRFIDTags = async () => {
+    console.log('[TonieEditor] loadAvailableRFIDTags called');
+    console.log('[TonieEditor] selectedBox:', selectedBox);
+
     // Use box-specific API if a box is selected, otherwise show no tags
     if (!selectedBox) {
+      console.log('[TonieEditor] No selectedBox, clearing tags');
       setAvailableRFIDTags([]);
       return;
     }
     setLoadingTags(true);
     try {
+      console.log('[TonieEditor] Calling rfidTagsAPI.getBoxTags with:', selectedBox);
       const { data } = await rfidTagsAPI.getBoxTags(selectedBox);
+      console.log('[TonieEditor] API response:', JSON.stringify(data, null, 2));
+      console.log('[TonieEditor] Total tags from API:', data.tags?.length || 0);
+
+      // Log each tag's status
+      (data.tags || []).forEach((tag, i) => {
+        console.log(`[TonieEditor] Tag ${i}: uid=${tag.uid}, status=${tag.status}, model=${tag.model}`);
+      });
+
       // Filter to show only unconfigured and unassigned tags
       const availableTags = (data.tags || []).filter(
         tag => tag.status === 'unconfigured' || tag.status === 'unassigned',
       );
+      console.log('[TonieEditor] Filtered available tags (unconfigured/unassigned):', availableTags.length);
+      availableTags.forEach((tag, i) => {
+        console.log(`[TonieEditor] Available tag ${i}: uid=${tag.uid}, status=${tag.status}`);
+      });
+
       setAvailableRFIDTags(availableTags);
-    } catch (_err) {
-      // Silent fail - tags are optional
+    } catch (err) {
+      console.error('[TonieEditor] Error loading RFID tags:', err);
     } finally {
       setLoadingTags(false);
     }
