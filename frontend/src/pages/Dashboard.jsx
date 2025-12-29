@@ -60,16 +60,27 @@ export default function Dashboard() {
     loadTonies();
     loadStatus();
     loadConfig();
-    loadRfidTags();
 
-    // Poll status and RFID tags every 10 seconds
+    // Poll status every 10 seconds
     const statusInterval = setInterval(() => {
       loadStatus();
-      loadRfidTags();
     }, 10000);
 
     return () => clearInterval(statusInterval);
   }, []);
+
+  // Load RFID tags when selectedBox changes
+  useEffect(() => {
+    loadRfidTags();
+
+    // Poll RFID tags every 10 seconds if a box is selected
+    if (selectedBox) {
+      const tagsInterval = setInterval(() => {
+        loadRfidTags();
+      }, 10000);
+      return () => clearInterval(tagsInterval);
+    }
+  }, [selectedBox]);
 
   const loadTonies = async (page = toniesPage, pageSize = toniesPageSize) => {
     try {
@@ -155,8 +166,13 @@ export default function Dashboard() {
   };
 
   const loadRfidTags = async () => {
+    // Only load tags if a box is selected
+    if (!selectedBox) {
+      setRfidTags([]);
+      return;
+    }
     try {
-      const response = await fetch(`${API_URL}/api/rfid-tags`);
+      const response = await fetch(`${API_URL}/api/rfid-tags/box/${selectedBox}`);
       const data = await response.json();
       setRfidTags(data.tags || []);
     } catch (err) {
